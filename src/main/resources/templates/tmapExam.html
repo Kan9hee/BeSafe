@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>simpleMap</title>
+  <script src="https://apis.openapi.sk.com/tmap/vectorjs?version=1&appKey=TMAP_APPKEY"></script>
+  <script type="text/javascript">
+    var map,marker;
+	var markers = [];
+	function initTmap(){
+		var map = new Tmapv3.Map("map_div", {
+			center : new Tmapv3.LatLng(36.81044675656011, 127.14644790564539),
+			width : "100%",
+			height : "600px",
+			zoom : 16
+		});
+
+		marker_s = new Tmapv3.Marker(
+				{
+					position : new Tmapv3.LatLng(36.81044675656011, 127.14644790564539),
+					icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
+					iconSize : new Tmapv3.Size(24, 38),
+					map : map
+				});
+
+		// 도착
+		marker_e = new Tmapv3.Marker(
+				{
+					position : new Tmapv3.LatLng(36.81207191888851,127.15305344458622),
+					icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
+					iconSize : new Tmapv3.Size(24, 38),
+					map : map
+				});
+
+		map.on("Click", function(evt) {
+            lngLat = evt.data.lngLat;
+            console.log(lngLat);
+            marker = new Tmapv3.Marker({
+				position: new Tmapv3.LatLng(lngLat._lat,lngLat._lng),
+				map: map
+			});
+			document.getElementById("marker_x").innerHTML = "x 좌표: " + lngLat._lng;
+			document.getElementById("marker_y").innerHTML = "y 좌표: " + lngLat._lat;
+		markers.push(marker);
+      });
+	}
+</script>
+</head>
+<body onload="initTmap()"><!-- 맵 생성 실행 -->
+<div id="map_div"/>
+<p id="marker_x">x 좌표: </p>
+<p id="marker_y">y 좌표: </p>
+</body>
+</html>
