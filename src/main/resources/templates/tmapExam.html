@@ -3,52 +3,176 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>simpleMap</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script src="https://apis.openapi.sk.com/tmap/vectorjs?version=1&appKey=TMAP_APPKEY"></script>
   <script type="text/javascript">
-    var map,marker;
-	var markers = [];
-	function initTmap(){
-		var map = new Tmapv3.Map("map_div", {
-			center : new Tmapv3.LatLng(36.81044675656011, 127.14644790564539),
+	var map;
+	var marker;
+	var marker_s, marker_e, marker_p1, marker_p2;
+	var totalMarkerArr = [];
+	var drawInfoArr = [];
+	var resultdrawArr = [];
+
+	function initTmap() {
+		map = new Tmapv3.Map("map_div", {
+		center : new Tmapv3.LatLng(36.81044675656011, 127.14644790564539),
 			width : "100%",
 			height : "600px",
 			zoom : 16
 		});
 
-		marker_s = new Tmapv3.Marker(
-				{
-					position : new Tmapv3.LatLng(36.81044675656011, 127.14644790564539),
-					icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
-					iconSize : new Tmapv3.Size(24, 38),
-					map : map
-				});
+		marker_s = new Tmapv3.Marker({
+				position : new Tmapv3.LatLng(36.81044675656011,127.14644790564539),
+				icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
+				iconSize : new Tmapv3.Size(24, 38),
+				map : map
+		});
 
-		// 도착
-		marker_e = new Tmapv3.Marker(
-				{
-					position : new Tmapv3.LatLng(36.81207191888851,127.15305344458622),
-					icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
-					iconSize : new Tmapv3.Size(24, 38),
-					map : map
-				});
+		marker_e = new Tmapv3.Marker({
+				position : new Tmapv3.LatLng(36.81207191888851,127.15305344458622),
+				icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
+				iconSize : new Tmapv3.Size(24, 38),
+				map : map
+		});
 
-		map.on("Click", function(evt) {
+		var headers = {};
+		headers["appKey"]="TMAP_APPKEY";
+
+		$.ajax({
+				method : "POST",
+				headers : headers,
+				url : "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1&format=json&callback=result",
+				async : false,
+				data : {
+					"startX" : "127.14644790564539",
+					"startY" : "36.81044675656011",
+					"endX" : "127.15305344458622",
+					"endY" : "36.81207191888851",
+					"reqCoordType" : "WGS84GEO",
+					"resCoordType" : "EPSG3857",
+					"startName" : "출발지",
+					"endName" : "도착지"
+				},
+				success : function(response) {
+					var resultData = response.features;
+
+					var tDistance = "총 거리 : "
+							+ ((resultData[0].properties.totalDistance) / 1000)
+									.toFixed(1) + "km,";
+					var tTime = " 총 시간 : "
+							+ ((resultData[0].properties.totalTime) / 60)
+									.toFixed(0) + "분";
+
+					$("#result").text(tDistance + tTime);
+
+					if (resultdrawArr.length > 0) {
+						for ( var i in resultdrawArr) {
+							resultdrawArr[i]
+									.setMap(null);
+						}
+						resultdrawArr = [];
+					}
+
+					drawInfoArr = [];
+
+					for ( var i in resultData) { //for문 [S]
+						var geometry = resultData[i].geometry;
+						var properties = resultData[i].properties;
+						var polyline_;
+
+						if (geometry.type == "LineString") {
+							for ( var j in geometry.coordinates) {
+								var latlng = new Tmapv3.Point(
+										geometry.coordinates[j][0],
+										geometry.coordinates[j][1]);
+								var convertPoint = new Tmapv3.Projection.convertEPSG3857ToWGS84GEO(latlng);
+								var convertChange = new Tmapv3.LatLng(
+										convertPoint._lat,
+										convertPoint._lng);
+								drawInfoArr.push(convertChange);
+							}
+						} else {
+							var markerImg = "";
+							var pType = "";
+							var size;
+
+							if (properties.pointType == "S") {
+								markerImg = "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png";
+								pType = "S";
+								size = new Tmapv3.Size(24, 38);
+							} else if (properties.pointType == "E") {
+								markerImg = "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png";
+								pType = "E";
+								size = new Tmapv3.Size(24, 38);
+							} else {
+								markerImg = "http://topopen.tmap.co.kr/imgs/point.png";
+								pType = "P";
+								size = new Tmapv3.Size(8, 8);
+							}
+
+							var latlon = new Tmapv3.Point(geometry.coordinates[0],geometry.coordinates[1]);
+							var convertPoint = new Tmapv3.Projection.convertEPSG3857ToWGS84GEO(latlon);
+							var routeInfoObj = {
+								markerImage : markerImg,
+								lng : convertPoint._lng,
+								lat : convertPoint._lat,
+								pointType : pType
+							};
+
+							marker_p = new Tmapv3.Marker(
+									{
+										position : new Tmapv3.LatLng(routeInfoObj.lat,routeInfoObj.lng),
+										icon : routeInfoObj.markerImage,
+										iconSize : size,
+										map : map
+									});
+						}
+					}
+					map.on("ConfigLoad",drawLine(drawInfoArr));
+				},
+				error : function(request, status, error) {
+					console.log("code:" + request.status + "\n"
+							+ "message:" + request.responseText + "\n"
+							+ "error:" + error);
+				}
+		});
+
+	    map.on("Click", function(evt){
             lngLat = evt.data.lngLat;
             console.log(lngLat);
             marker = new Tmapv3.Marker({
-				position: new Tmapv3.LatLng(lngLat._lat,lngLat._lng),
-				map: map
-			});
-			document.getElementById("marker_x").innerHTML = "x 좌표: " + lngLat._lng;
-			document.getElementById("marker_y").innerHTML = "y 좌표: " + lngLat._lat;
-		markers.push(marker);
-      });
+                position: new Tmapv3.LatLng(lngLat._lat,lngLat._lng),
+                map: map
+            });
+		    document.getElementById("marker_x").innerHTML = "x 좌표: " + lngLat._lng;
+		    document.getElementById("marker_y").innerHTML = "y 좌표: " + lngLat._lat;
+        });
+
+    }
+
+	function addComma(num) {
+		var regexp = /\B(?=(\d{3})+(?!\d))/g;
+		return num.toString().replace(regexp, ',');
+	}
+
+	function drawLine(arrPoint) {
+		var polyline_;
+
+		polyline_ = new Tmapv3.Polyline({
+			path : arrPoint,
+			strokeColor : "#DD0000",
+			strokeWeight : 6,
+			map : map
+		});
+		resultdrawArr.push(polyline_);
 	}
 </script>
 </head>
-<body onload="initTmap()"><!-- 맵 생성 실행 -->
-<div id="map_div"/>
-<p id="marker_x">x 좌표: </p>
-<p id="marker_y">y 좌표: </p>
+<body onload="initTmap();">
+  <div id="map_wrap" class="map_wrap3">
+    <div id="map_div"></div>
+  </div>
+  <div class="map_act_btn_wrap clear_box"></div>
+  <p id="result"></p>
 </body>
 </html>
