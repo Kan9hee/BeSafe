@@ -4,39 +4,38 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>simpleMap</title>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="https://apis.openapi.sk.com/tmap/vectorjs?version=1&appKey=TMAP_APPKEY"></script>
+  <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=oY9OX6wOom2L35mdLchn44TOgRxWfrZe4fahCyCO"></script>
   <script type="text/javascript">
 	var map;
-	var marker;
-	var marker_s, marker_e, marker_p1, marker_p2;
+	var marker, marker_s, marker_e;
 	var totalMarkerArr = [];
 	var drawInfoArr = [];
-	var resultdrawArr = [];
+	var resultDrawArr = [];
 
 	function initTmap() {
-		map = new Tmapv3.Map("map_div", {
-		center : new Tmapv3.LatLng(36.81044675656011, 127.14644790564539),
+		map = new Tmapv2.Map("map_div", {
+		center : new Tmapv2.LatLng(36.81044675656011, 127.14644790564539),
 			width : "100%",
 			height : "600px",
 			zoom : 16
 		});
 
-		marker_s = new Tmapv3.Marker({
-				position : new Tmapv3.LatLng(36.81044675656011,127.14644790564539),
+		marker_s = new Tmapv2.Marker({
+				position : new Tmapv2.LatLng(36.81044675656011,127.14644790564539),
 				icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
-				iconSize : new Tmapv3.Size(24, 38),
+				iconSize : new Tmapv2.Size(24, 38),
 				map : map
 		});
 
-		marker_e = new Tmapv3.Marker({
-				position : new Tmapv3.LatLng(36.81207191888851,127.15305344458622),
+		marker_e = new Tmapv2.Marker({
+				position : new Tmapv2.LatLng(36.81207191888851,127.15305344458622),
 				icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
-				iconSize : new Tmapv3.Size(24, 38),
+				iconSize : new Tmapv2.Size(24, 38),
 				map : map
 		});
 
 		var headers = {};
-		headers["appKey"]="TMAP_APPKEY";
+		headers["appKey"]="oY9OX6wOom2L35mdLchn44TOgRxWfrZe4fahCyCO";
 
 		$.ajax({
 				method : "POST",
@@ -65,28 +64,28 @@
 
 					$("#result").text(tDistance + tTime);
 
-					if (resultdrawArr.length > 0) {
-						for ( var i in resultdrawArr) {
-							resultdrawArr[i]
+					if (resultDrawArr.length > 0) {
+						for ( var i in resultDrawArr) {
+							resultDrawArr[i]
 									.setMap(null);
 						}
-						resultdrawArr = [];
+						resultDrawArr = [];
 					}
 
 					drawInfoArr = [];
 
-					for ( var i in resultData) { //for문 [S]
+					for ( var i in resultData) {
 						var geometry = resultData[i].geometry;
 						var properties = resultData[i].properties;
 						var polyline_;
 
 						if (geometry.type == "LineString") {
 							for ( var j in geometry.coordinates) {
-								var latlng = new Tmapv3.Point(
+								var latlng = new Tmapv2.Point(
 										geometry.coordinates[j][0],
 										geometry.coordinates[j][1]);
-								var convertPoint = new Tmapv3.Projection.convertEPSG3857ToWGS84GEO(latlng);
-								var convertChange = new Tmapv3.LatLng(
+								var convertPoint = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(latlng);
+								var convertChange = new Tmapv2.LatLng(
 										convertPoint._lat,
 										convertPoint._lng);
 								drawInfoArr.push(convertChange);
@@ -99,19 +98,19 @@
 							if (properties.pointType == "S") {
 								markerImg = "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png";
 								pType = "S";
-								size = new Tmapv3.Size(24, 38);
+								size = new Tmapv2.Size(24, 38);
 							} else if (properties.pointType == "E") {
 								markerImg = "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png";
 								pType = "E";
-								size = new Tmapv3.Size(24, 38);
+								size = new Tmapv2.Size(24, 38);
 							} else {
 								markerImg = "http://topopen.tmap.co.kr/imgs/point.png";
 								pType = "P";
-								size = new Tmapv3.Size(8, 8);
+								size = new Tmapv2.Size(8, 8);
 							}
 
-							var latlon = new Tmapv3.Point(geometry.coordinates[0],geometry.coordinates[1]);
-							var convertPoint = new Tmapv3.Projection.convertEPSG3857ToWGS84GEO(latlon);
+							var latlon = new Tmapv2.Point(geometry.coordinates[0],geometry.coordinates[1]);
+							var convertPoint = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(latlon);
 							var routeInfoObj = {
 								markerImage : markerImg,
 								lng : convertPoint._lng,
@@ -119,9 +118,9 @@
 								pointType : pType
 							};
 
-							marker_p = new Tmapv3.Marker(
+							marker_p = new Tmapv2.Marker(
 									{
-										position : new Tmapv3.LatLng(routeInfoObj.lat,routeInfoObj.lng),
+										position : new Tmapv2.LatLng(routeInfoObj.lat,routeInfoObj.lng),
 										icon : routeInfoObj.markerImage,
 										iconSize : size,
 										map : map
@@ -140,8 +139,8 @@
 	    map.on("Click", function(evt){
             lngLat = evt.data.lngLat;
             console.log(lngLat);
-            marker = new Tmapv3.Marker({
-                position: new Tmapv3.LatLng(lngLat._lat,lngLat._lng),
+            marker = new Tmapv2.Marker({
+                position: new Tmapv2.LatLng(lngLat._lat,lngLat._lng),
                 map: map
             });
 		    document.getElementById("marker_x").innerHTML = "x 좌표: " + lngLat._lng;
@@ -158,13 +157,13 @@
 	function drawLine(arrPoint) {
 		var polyline_;
 
-		polyline_ = new Tmapv3.Polyline({
+		polyline_ = new Tmapv2.Polyline({
 			path : arrPoint,
 			strokeColor : "#DD0000",
 			strokeWeight : 6,
 			map : map
 		});
-		resultdrawArr.push(polyline_);
+		resultDrawArr.push(polyline_);
 	}
 </script>
 </head>
