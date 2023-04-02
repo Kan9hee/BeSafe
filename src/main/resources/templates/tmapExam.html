@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>simpleMap</title>
@@ -10,7 +10,7 @@
 	var lonlat;
 	var marker, marker_s, marker_e;
 	var markers = [];
-	var totalMarkerArr = [];
+	var streetLightMarker = [];
 	var drawInfoArr = [];
 	var resultDrawArr = [];
 
@@ -158,11 +158,6 @@
 			markers[i].setMap(null);
 		}
 		markers = [];
-	}
-
-	function addComma(num) {
-		var regexp = /\B(?=(\d{3})+(?!\d))/g;
-		return num.toString().replace(regexp, ',');
 	}
 
 	function drawLine(arrPoint) {

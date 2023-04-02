@@ -18,12 +18,10 @@ import java.net.URLEncoder;
 @Service
 public class PublicAPIService {
 
-    private StreetLight streetLight=new StreetLight();
-
     @Value("${PUBLIC_DATA_KEY}")
     private String public_apiKey;
 
-    public void callStreetLight() throws IOException, ParseException {
+    public void callStreetLight(StreetLight streetLight) throws IOException, ParseException {
         StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/6300000/GetScltListService1/getScltList1");
         urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + public_apiKey);
         urlBuilder.append("&" + URLEncoder.encode("RDNMADR", "UTF-8") + "=" + URLEncoder.encode("계룡로662번길", "UTF-8"));
@@ -60,8 +58,6 @@ public class PublicAPIService {
             streetLight.addLatitude((Double) object.get("LATITUDE"));
             streetLight.addLongitude((Double) object.get("LONGITUDE"));
         }
-        System.out.println(streetLight.getLatitudeList().size());
-        System.out.println(streetLight.getLongitudeList().size());
 
         for(int i=0;i<streetLight.getLatitudeList().size();i++){
             System.out.println("LATITUDE: " + streetLight.getLatitudeList().get(i) + " ,LONGITUDE: " + streetLight.getLongitudeList().get(i));
