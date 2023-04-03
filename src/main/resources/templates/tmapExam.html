@@ -5,10 +5,12 @@
   <title>simpleMap</title>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=TMAP_APPKEY"></script>
-  <script type="text/javascript">
+  <script type="text/javascript" th:inline="javascript">
 	var map;
 	var lonlat;
 	var marker, marker_s, marker_e;
+	var streetLightLatitude = JSON.parse([[${streetLightLatitude}]]);
+	var streetLightLongitude = JSON.parse([[${streetLightLongitude}]]);
 	var markers = [];
 	var streetLightMarker = [];
 	var drawInfoArr = [];
@@ -139,6 +141,12 @@
 				}
 		});
 		map.addListener("click", onClick);
+		for ( var i=0; i<streetLightLatitude.length; i++){
+          var light = new Tmapv2.Marker({
+			position: new Tmapv2.LatLng(streetLightLatitude[i],streetLightLongitude[i]),
+			map: map
+		  });
+        }
     }
 
     function onClick(e){

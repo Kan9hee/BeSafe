@@ -28,7 +28,6 @@ public class MapController {
         StreetLight streetLight=new StreetLight();
         tmapAPIService.callTmapRoute();
         publicAPIService.callStreetLight(streetLight);
-        System.out.println(streetLight.getLatitudeList().size());
         model.addAttribute("streetLightLatitude",new Gson().toJson(streetLight.getLatitudeList()));
         model.addAttribute("streetLightLongitude",new Gson().toJson(streetLight.getLongitudeList()));
         return "tmapExam";
