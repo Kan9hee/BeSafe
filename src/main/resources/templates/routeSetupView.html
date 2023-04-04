@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>simpleMap</title>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=oY9OX6wOom2L35mdLchn44TOgRxWfrZe4fahCyCO"></script>
+  <script type="text/javascript" th:inline="javascript">
+	var map;
+	var lonlat;
+	var marker;
+	var markers = [];
+	var start[];
+	vat end[];
+
+	function initTmap() {
+		map = new Tmapv2.Map("map_div", {
+		center : new Tmapv2.LatLng(36.333880369392965, 127.39340505429725),
+			width : "100%",
+			height : "600px",
+			zoom : 18
+		});
+
+		map.addListener("click", onClick);
+    }
+
+    function onClick(e){
+        resetMarkers();
+		lonlat = e.latLng;
+		marker = new Tmapv2.Marker({
+			position: new Tmapv2.LatLng(lonlat.lat(),lonlat.lng()),
+			map: map
+		});
+		markers.push(marker);
+		start[0]=lonlat.lat();
+		start[1]=lonlat.lng();
+	}
+
+	function resetMarkers() {
+	    end[0]=start[0];
+	    end[1]=start[1];
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(null);
+        }
+        markers = [];
+	}
+</script>
+</head>
+<body onload="initTmap();">
+    <div id="map_div"></div>
+</body>
+</html>

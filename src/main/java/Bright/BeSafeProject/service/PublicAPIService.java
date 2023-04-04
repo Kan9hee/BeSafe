@@ -24,9 +24,9 @@ public class PublicAPIService {
     public void callStreetLight(StreetLight streetLight) throws IOException, ParseException {
         StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/6300000/GetScltListService1/getScltList1");
         urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + public_apiKey);
-        urlBuilder.append("&" + URLEncoder.encode("RDNMADR", "UTF-8") + "=" + URLEncoder.encode("계룡로662번길", "UTF-8"));
+        urlBuilder.append("&" + URLEncoder.encode("LNMADR", "UTF-8") + "=" + URLEncoder.encode("용문동", "UTF-8"));
         urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("20", "UTF-8"));
+        urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("2147483647", "UTF-8"));
         urlBuilder.append("&" + URLEncoder.encode("type", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -57,10 +57,6 @@ public class PublicAPIService {
             JSONObject object = (JSONObject) list.get(i);
             streetLight.addLatitude((Double) object.get("LATITUDE"));
             streetLight.addLongitude((Double) object.get("LONGITUDE"));
-        }
-
-        for(int i=0;i<streetLight.getLatitudeList().size();i++){
-            System.out.println("LATITUDE: " + streetLight.getLatitudeList().get(i) + " ,LONGITUDE: " + streetLight.getLongitudeList().get(i));
         }
     }
 }
