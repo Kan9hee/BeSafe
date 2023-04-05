@@ -8,11 +8,10 @@ import com.google.gson.Gson;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Controller
 public class MapController {
@@ -21,6 +20,7 @@ public class MapController {
     private final TmapAPIService tmapAPIService;
     private StreetLight streetLight=new StreetLight();
     private Route route=new Route();
+    private Gson gson=new Gson();
 
     public MapController(PublicAPIService publicAPIService, TmapAPIService tmapAPIService) {
         this.publicAPIService = publicAPIService;
@@ -32,15 +32,20 @@ public class MapController {
 
         tmapAPIService.callTmapRoute();
         publicAPIService.callStreetLight(streetLight);
-        model.addAttribute("streetLightLatitude",new Gson().toJson(streetLight.getLatitudeList()));
-        model.addAttribute("streetLightLongitude",new Gson().toJson(streetLight.getLongitudeList()));
+        model.addAttribute("streetLightLatitude",gson.toJson(streetLight.getLatitudeList()));
+        model.addAttribute("streetLightLongitude",gson.toJson(streetLight.getLongitudeList()));
         return "resultView";
     }
 
-    @RequestMapping(value = "/search")
-    public String result(Double[] start,Double[] end){
-        route.setStartLocation(start);
-        route.setEndLocation(end);
+    @GetMapping(value = "/search")
+    public String routeSetup(){
         return "routeSetupView";
+    }
+
+    @PostMapping(value = "/search")
+    public String routeResult(@RequestParam("start") String startJSON,@RequestParam("end") String endJSON){
+        route.setStartLocation(gson.fromJson(startJSON,Double[].class));
+        route.setEndLocation(gson.fromJson(endJSON,Double[].class));
+        return "redirect:/map";
     }
 }
