@@ -24,7 +24,7 @@ public class PublicAPIService {
     public void callStreetLight(StreetLight streetLight) throws IOException, ParseException {
         StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/6300000/GetScltListService1/getScltList1");
         urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + public_apiKey);
-        urlBuilder.append("&" + URLEncoder.encode("LNMADR", "UTF-8") + "=" + URLEncoder.encode("용문동", "UTF-8"));
+        urlBuilder.append("&" + URLEncoder.encode("LNMADR", "UTF-8") + "=" + URLEncoder.encode("대전광역시 서구 용문동", "UTF-8"));
         urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
         urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("2147483647", "UTF-8"));
         urlBuilder.append("&" + URLEncoder.encode("type", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));

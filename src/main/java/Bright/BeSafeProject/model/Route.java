@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Route {
+    private String startAddress;
+    private String endAddress;
     private Double[] startLocation;
     private Double[] endLocation;
 }

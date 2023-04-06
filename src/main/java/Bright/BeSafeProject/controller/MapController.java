@@ -11,7 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Controller
 public class MapController {
@@ -28,10 +27,7 @@ public class MapController {
     }
 
     @GetMapping(value = "/map")
-    public String Map(Model model) throws IOException, InterruptedException, ParseException {
-
-        tmapAPIService.callTmapRoute();
-        publicAPIService.callStreetLight(streetLight);
+    public String Map(Model model){
         model.addAttribute("streetLightLatitude",gson.toJson(streetLight.getLatitudeList()));
         model.addAttribute("streetLightLongitude",gson.toJson(streetLight.getLongitudeList()));
         return "resultView";
@@ -43,9 +39,14 @@ public class MapController {
     }
 
     @PostMapping(value = "/search")
-    public String routeResult(@RequestParam("start") String startJSON,@RequestParam("end") String endJSON){
+    public String routeResult(@RequestParam("start") String startJSON,@RequestParam("end") String endJSON)
+            throws IOException, InterruptedException, ParseException {
         route.setStartLocation(gson.fromJson(startJSON,Double[].class));
         route.setEndLocation(gson.fromJson(endJSON,Double[].class));
+        route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
+        route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
+        tmapAPIService.callTmapRoute(route);
+        publicAPIService.callStreetLight(streetLight);
         return "redirect:/map";
     }
 }
