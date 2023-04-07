@@ -12,4 +12,8 @@ public class Route {
     private String endAddress;
     private Double[] startLocation;
     private Double[] endLocation;
+
+    public boolean sameAddressCheck(){
+        return !(startAddress.equals(endAddress));
+    }
 }

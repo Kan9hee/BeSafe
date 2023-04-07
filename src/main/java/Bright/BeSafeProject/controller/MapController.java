@@ -46,7 +46,9 @@ public class MapController {
         route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
         route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
         tmapAPIService.callTmapRoute(route);
-        publicAPIService.callStreetLight(streetLight);
+        publicAPIService.callStreetLight(streetLight,route.getStartAddress());
+        if(route.sameAddressCheck())
+            publicAPIService.callStreetLight(streetLight,route.getEndAddress());
         return "redirect:/map";
     }
 }

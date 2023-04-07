@@ -1,6 +1,9 @@
 package Bright.BeSafeProject.service;
 
 import Bright.BeSafeProject.model.Route;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +19,7 @@ public class TmapAPIService {
     @Value("${TMAP_APPKEY}")
     private String tmap_apiKey;
 
-    public String findAddress(Double[] location) throws IOException, InterruptedException {
+    public String findAddress(Double[] location) throws IOException, InterruptedException, ParseException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://apis.openapi.sk.com/tmap/geo/reversegeocoding?version=1&lat="+location[0]
                         +"&lon="+location[1]+"&coordType=WGS84GEO&addressType=A01&newAddressExtend=Y"))
@@ -25,8 +28,11 @@ public class TmapAPIService {
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.body());
-        return response.body();
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(response.body());
+        JSONObject x1 = (JSONObject) jsonObject.get("addressInfo");
+        String address = (String) x1.get("fullAddress");
+        return address;
     }
 
     public void callTmapRoute(Route route) throws IOException, InterruptedException {
