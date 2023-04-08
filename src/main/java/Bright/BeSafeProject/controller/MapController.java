@@ -11,15 +11,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Controller
 public class MapController {
 
     private final PublicAPIService publicAPIService;
     private final TmapAPIService tmapAPIService;
-    private StreetLight streetLight=new StreetLight();
-    private Route route=new Route();
-    private Gson gson=new Gson();
+    private StreetLight streetLight;
+    private Route route;
+    private Gson gson;
 
     public MapController(PublicAPIService publicAPIService, TmapAPIService tmapAPIService) {
         this.publicAPIService = publicAPIService;
@@ -28,6 +30,8 @@ public class MapController {
 
     @GetMapping(value = "/map")
     public String Map(Model model){
+        model.addAttribute("startLocation",gson.toJson(new ArrayList<>(Arrays.asList(route.getStartLocation()))));
+        model.addAttribute("endLocation",gson.toJson(new ArrayList<>(Arrays.asList(route.getEndLocation()))));
         model.addAttribute("streetLightLatitude",gson.toJson(streetLight.getLatitudeList()));
         model.addAttribute("streetLightLongitude",gson.toJson(streetLight.getLongitudeList()));
         return "resultView";
@@ -35,19 +39,22 @@ public class MapController {
 
     @GetMapping(value = "/search")
     public String routeSetup(){
+        streetLight=new StreetLight();
+        route=new Route();
+        gson=new Gson();
         return "routeSetupView";
     }
 
     @PostMapping(value = "/search")
     public String routeResult(@RequestParam("start") String startJSON,@RequestParam("end") String endJSON)
             throws IOException, InterruptedException, ParseException {
-        route.setStartLocation(gson.fromJson(startJSON,Double[].class));
-        route.setEndLocation(gson.fromJson(endJSON,Double[].class));
+        route.setStartLocation(gson.fromJson(startJSON, Double[].class));
+        route.setEndLocation(gson.fromJson(endJSON, Double[].class));
         route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
         route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
         tmapAPIService.callTmapRoute(route);
         publicAPIService.callStreetLight(streetLight,route.getStartAddress());
-        if(route.sameAddressCheck())
+        if(!route.sameAddressCheck())
             publicAPIService.callStreetLight(streetLight,route.getEndAddress());
         return "redirect:/map";
     }

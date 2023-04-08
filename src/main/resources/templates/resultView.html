@@ -11,6 +11,8 @@
 	var marker, marker_s, marker_e;
 	var streetLightLatitude = JSON.parse([[${streetLightLatitude}]]);
 	var streetLightLongitude = JSON.parse([[${streetLightLongitude}]]);
+	var startLocation = JSON.parse([[${startLocation}]]);
+	var endLocation = JSON.parse([[${endLocation}]]);
 	var markers = [];
 	var streetLightMarker = [];
 	var drawInfoArr = [];
@@ -18,21 +20,21 @@
 
 	function initTmap() {
 		map = new Tmapv2.Map("map_div", {
-		center : new Tmapv2.LatLng(36.333880369392965, 127.39340505429725),
+		center : new Tmapv2.LatLng(startLocation[0], startLocation[1]),
 			width : "100%",
 			height : "600px",
 			zoom : 18
 		});
 
 		marker_s = new Tmapv2.Marker({
-				position : new Tmapv2.LatLng(36.333880369392965,127.39340505429725),
+				position : new Tmapv2.LatLng(startLocation[0], startLocation[1]),
 				icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
 				iconSize : new Tmapv2.Size(24, 38),
 				map : map
 		});
 
 		marker_e = new Tmapv2.Marker({
-				position : new Tmapv2.LatLng(36.336104962225946,127.39369741201445),
+				position : new Tmapv2.LatLng(endLocation[0], endLocation[1]),
 				icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
 				iconSize : new Tmapv2.Size(24, 38),
 				map : map
@@ -47,10 +49,10 @@
 				url : "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1&format=json&callback=result",
 				async : false,
 				data : {
-					"startX" : "127.39340505429725",
-					"startY" : "36.333880369392965",
-					"endX" : "127.39369741201445",
-					"endY" : "36.336104962225946",
+					"startX" : startLocation[1],
+					"startY" : startLocation[0],
+					"endX" : endLocation[1],
+					"endY" : endLocation[0],
 					"reqCoordType" : "WGS84GEO",
 					"resCoordType" : "EPSG3857",
 					"startName" : "출발지",
