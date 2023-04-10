@@ -18,10 +18,13 @@ import java.net.URLEncoder;
 @Service
 public class PublicAPIService {
 
+    private Double streetLatitude;
+    private Double streetLongitude;
+
     @Value("${PUBLIC_DATA_KEY}")
     private String public_apiKey;
 
-    public void callStreetLight(StreetLight streetLight,String address) throws IOException, ParseException {
+    public void callSecurityLight(StreetLight streetLight,String address) throws IOException, ParseException {
         StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/6300000/GetScltListService1/getScltList1");
         urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + public_apiKey);
         urlBuilder.append("&" + URLEncoder.encode("LNMADR", "UTF-8") + "=" + URLEncoder.encode(address, "UTF-8"));
@@ -57,6 +60,50 @@ public class PublicAPIService {
             JSONObject object = (JSONObject) list.get(i);
             streetLight.addLatitude((Double) object.get("LATITUDE"));
             streetLight.addLongitude((Double) object.get("LONGITUDE"));
+        }
+    }
+
+    public void callStreetLamp(StreetLight streetLight,Double[] range) throws IOException, ParseException {
+        for(int page=1;page<6;page++) {
+            StringBuilder urlBuilder = new StringBuilder("https://api.odcloud.kr/api/15110054/v1/uddi:283207b1-f595-4c46-bbd5-838abeb18429");
+            urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=" + page);
+            urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=" + URLEncoder.encode("9000", "UTF-8"));
+            urlBuilder.append("&" + URLEncoder.encode("returnType", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
+            urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + public_apiKey);
+            URL url = new URL(urlBuilder.toString());
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-type", "application/json");
+            System.out.println("Response code: " + conn.getResponseCode());
+            BufferedReader rd;
+            if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+                rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            } else {
+                rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+            }
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = rd.readLine()) != null) {
+                sb.append(line);
+            }
+            rd.close();
+            conn.disconnect();
+
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) jsonParser.parse(sb.toString());
+            JSONArray list = (JSONArray) jsonObject.get("data");
+            for (int i = 0; i < list.size(); i++) {
+                JSONObject object = (JSONObject) list.get(i);
+                streetLatitude = Double.valueOf((String) object.get("위도"));
+                streetLongitude = Double.valueOf((String) object.get("경도"));
+                if (streetLatitude >= range[0]
+                        && streetLatitude <= range[2]
+                        && streetLongitude >= range[1]
+                        && streetLongitude <= range[3]) {
+                    streetLight.addLatitude(streetLatitude);
+                    streetLight.addLongitude(streetLongitude);
+                }
+            }
         }
     }
 }

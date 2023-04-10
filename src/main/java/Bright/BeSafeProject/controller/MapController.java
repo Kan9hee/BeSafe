@@ -50,12 +50,14 @@ public class MapController {
             throws IOException, InterruptedException, ParseException {
         route.setStartLocation(gson.fromJson(startJSON, Double[].class));
         route.setEndLocation(gson.fromJson(endJSON, Double[].class));
+        route.setShowRange();
         route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
         route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
         tmapAPIService.callTmapRoute(route);
-        publicAPIService.callStreetLight(streetLight,route.getStartAddress());
+        publicAPIService.callSecurityLight(streetLight,route.getStartAddress());
         if(!route.sameAddressCheck())
-            publicAPIService.callStreetLight(streetLight,route.getEndAddress());
+            publicAPIService.callSecurityLight(streetLight,route.getEndAddress());
+        publicAPIService.callStreetLamp(streetLight,route.getShowRange());
         return "redirect:/map";
     }
 }
