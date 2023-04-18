@@ -50,10 +50,10 @@ public class MapController {
             throws IOException, InterruptedException, ParseException {
         route.setStartLocation(gson.fromJson(startJSON, Double[].class));
         route.setEndLocation(gson.fromJson(endJSON, Double[].class));
-        route.setShowRange();
         route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
         route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
         tmapAPIService.callTmapRoute(route);
+        route.setShowRange();
         publicAPIService.callSecurityLight(streetLight,route.getStartAddress());
         if(!route.sameAddressCheck())
             publicAPIService.callSecurityLight(streetLight,route.getEndAddress());

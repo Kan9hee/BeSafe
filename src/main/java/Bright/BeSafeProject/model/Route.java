@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 @Data
 @NoArgsConstructor
@@ -29,11 +30,13 @@ public class Route {
             showRange[1]=endLocation[1];
             showRange[3]=startLocation[1];
         }
+        showRange[0]=(showRange[0] < Collections.min(waypointLatitudes))?showRange[0]:Collections.min(waypointLatitudes);
+        showRange[2]=(showRange[2] > Collections.max(waypointLatitudes))?showRange[2]:Collections.max(waypointLatitudes);
+        showRange[1]=(showRange[1] < Collections.min(waypointLongitudes))?showRange[1]:Collections.min(waypointLongitudes);
+        showRange[3]=(showRange[3] > Collections.max(waypointLongitudes))?showRange[3]:Collections.max(waypointLongitudes);
     }
     public boolean sameAddressCheck() { return (startAddress.equals(endAddress)); }
-    public void addWaypointLatitude(Double Latitude){
-        waypointLatitudes.add(Latitude);
-    }
+    public void addWaypointLatitude(Double Latitude) { waypointLatitudes.add(Latitude); }
     public void addWaypointLongitude(Double Latitude){
         waypointLongitudes.add(Latitude);
     }
