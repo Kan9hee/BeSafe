@@ -35,7 +35,7 @@ public class PublicAPIService {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Content-type", "application/json");
-        System.out.println("Response code: " + conn.getResponseCode());
+        System.out.println("방범등 API 호출, Response code: " + conn.getResponseCode());
         BufferedReader rd;
         if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
             rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -74,7 +74,7 @@ public class PublicAPIService {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Content-type", "application/json");
-            System.out.println("Response code: " + conn.getResponseCode());
+            System.out.println("가로등 API 호출 (" + page + "/5), Response code: " + conn.getResponseCode());
             BufferedReader rd;
             if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
                 rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -96,13 +96,8 @@ public class PublicAPIService {
                 JSONObject object = (JSONObject) list.get(i);
                 streetLatitude = Double.valueOf((String) object.get("위도"));
                 streetLongitude = Double.valueOf((String) object.get("경도"));
-                if (streetLatitude >= range[0]
-                        && streetLatitude <= range[2]
-                        && streetLongitude >= range[1]
-                        && streetLongitude <= range[3]) {
-                    streetLight.addLatitude(streetLatitude);
-                    streetLight.addLongitude(streetLongitude);
-                }
+                streetLight.addLatitude(streetLatitude);
+                streetLight.addLongitude(streetLongitude);
             }
         }
     }

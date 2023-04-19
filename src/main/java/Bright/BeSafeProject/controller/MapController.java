@@ -58,6 +58,7 @@ public class MapController {
         if(!route.sameAddressCheck())
             publicAPIService.callSecurityLight(streetLight,route.getEndAddress());
         publicAPIService.callStreetLamp(streetLight,route.getShowRange());
+        streetLight.setRangeWithRoute(route.getShowRange());
         return "redirect:/map";
     }
 }
