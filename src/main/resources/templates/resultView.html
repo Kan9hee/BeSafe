@@ -135,8 +135,19 @@
 		});
 		map.addListener("click", onClick);
 		for ( var i=0; i<streetLightLatitude.length; i++){
-          var light = new Tmapv2.Marker({
-			position: new Tmapv2.LatLng(streetLightLatitude[i],streetLightLongitude[i]),
+		  var lightLocation = new Tmapv2.LatLng(streetLightLatitude[i],streetLightLongitude[i]);
+          var lightMarker = new Tmapv2.Marker({
+			position: lightLocation,
+			icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_b_m_l.png",
+			map: map
+		  });
+		  var lightRange = new Tmapv2.Circle({
+			center: lightLocation,
+			radius: 30,
+			strokeColor: "blue",
+			strokeOpacity:0.2,
+			fillColor: "blue",
+			fillOpacity:0.2,
 			map: map
 		  });
         }
@@ -147,6 +158,7 @@
 		lonlat = e.latLng;
 		marker = new Tmapv2.Marker({
 			position: new Tmapv2.LatLng(lonlat.lat(),lonlat.lng()),
+			icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_g_m_x.png",
 			map: map
 		});
 		markers.push(marker);
