@@ -41,4 +41,8 @@ public class Route {
     public void addWaypointLongitude(Double Latitude){
         waypointLongitudes.add(Latitude);
     }
+    public void setAddress(String start,String end){
+        setStartAddress(start);
+        setEndAddress(end);
+    }
 }

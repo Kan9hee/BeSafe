@@ -34,6 +34,8 @@ public class MapController {
         model.addAttribute("endLocation",gson.toJson(new ArrayList<>(Arrays.asList(route.getEndLocation()))));
         model.addAttribute("streetLightLatitude",gson.toJson(streetLight.getLatitudeList()));
         model.addAttribute("streetLightLongitude",gson.toJson(streetLight.getLongitudeList()));
+        model.addAttribute("waypointLatitude",gson.toJson(route.getWaypointLatitudes()));
+        model.addAttribute("waypointLongitude",gson.toJson(route.getWaypointLongitudes()));
         return "resultView";
     }
 

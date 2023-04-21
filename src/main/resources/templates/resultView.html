@@ -8,15 +8,18 @@
   <script type="text/javascript" th:inline="javascript">
 	var map;
 	var lonlat;
-	var marker, marker_s, marker_e;
+	var marker_s, marker_e;
+	var polyline;
 	var streetLightLatitude = JSON.parse([[${streetLightLatitude}]]);
 	var streetLightLongitude = JSON.parse([[${streetLightLongitude}]]);
 	var startLocation = JSON.parse([[${startLocation}]]);
 	var endLocation = JSON.parse([[${endLocation}]]);
+	var waypointLatitude = JSON.parse([[${waypointLatitude}]]);
+	var waypointLongitude = JSON.parse([[${waypointLongitude}]]);
 	var markers = [];
-	var streetLightMarker = [];
 	var drawInfoArr = [];
-	var resultDrawArr = [];
+	var streetLightMarker = [];
+	var streetLightRange = [];
 
 	function initTmap() {
 		map = new Tmapv2.Map("map_div", {
@@ -40,123 +43,42 @@
 				map : map
 		});
 
-		var headers = {};
-		headers["appKey"]="TMAP_APPKEY";
+		for(var i=0;i<waypointLatitude.length;i++){
+		  drawInfoArr.push(new Tmapv2.LatLng(waypointLatitude[i],waypointLongitude[i]));
+		}
 
-		$.ajax({
-				method : "POST",
-				headers : headers,
-				url : "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1&format=json&callback=result",
-				async : false,
-				data : {
-					"startX" : startLocation[1],
-					"startY" : startLocation[0],
-					"endX" : endLocation[1],
-					"endY" : endLocation[0],
-					"reqCoordType" : "WGS84GEO",
-					"resCoordType" : "EPSG3857",
-					"startName" : "출발지",
-					"endName" : "도착지",
-					searchOption: '10'
-				},
-				success : function(response) {
-					var resultData = response.features;
-
-					if (resultDrawArr.length > 0) {
-						for ( var i in resultDrawArr) {
-							resultDrawArr[i]
-									.setMap(null);
-						}
-						resultDrawArr = [];
-					}
-
-					drawInfoArr = [];
-
-					for ( var i in resultData) {
-						var geometry = resultData[i].geometry;
-						var properties = resultData[i].properties;
-						var polyline_;
-
-						if (geometry.type == "LineString") {
-							for ( var j in geometry.coordinates) {
-								var latlng = new Tmapv2.Point(
-										geometry.coordinates[j][0],
-										geometry.coordinates[j][1]);
-								var convertPoint = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(latlng);
-								var convertChange = new Tmapv2.LatLng(
-										convertPoint._lat,
-										convertPoint._lng);
-								drawInfoArr.push(convertChange);
-							}
-						} else {
-							var markerImg = "";
-							var pType = "";
-							var size;
-
-							if (properties.pointType == "S") {
-								markerImg = "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png";
-								pType = "S";
-								size = new Tmapv2.Size(24, 38);
-							} else if (properties.pointType == "E") {
-								markerImg = "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png";
-								pType = "E";
-								size = new Tmapv2.Size(24, 38);
-							} else {
-								markerImg = "http://topopen.tmap.co.kr/imgs/point.png";
-								pType = "P";
-								size = new Tmapv2.Size(8, 8);
-							}
-
-							var latlon = new Tmapv2.Point(geometry.coordinates[0],geometry.coordinates[1]);
-							var convertPoint = new Tmapv2.Projection.convertEPSG3857ToWGS84GEO(latlon);
-							var routeInfoObj = {
-								markerImage : markerImg,
-								lng : convertPoint._lng,
-								lat : convertPoint._lat,
-								pointType : pType
-							};
-
-							marker_p = new Tmapv2.Marker(
-									{
-										position : new Tmapv2.LatLng(routeInfoObj.lat,routeInfoObj.lng),
-										icon : routeInfoObj.markerImage,
-										iconSize : size,
-										map : map
-									});
-						}
-					}
-					map.on("ConfigLoad",drawLine(drawInfoArr));
-				},
-				error : function(request, status, error) {
-					console.log("code:" + request.status + "\n"
-							+ "message:" + request.responseText + "\n"
-							+ "error:" + error);
-				}
+		polyline = new Tmapv2.Polyline({
+			path : drawInfoArr,
+			strokeColor : "#DD0000",
+			strokeWeight : 6,
+			map : map
 		});
-		map.addListener("click", onClick);
+
 		for ( var i=0; i<streetLightLatitude.length; i++){
-		  var lightLocation = new Tmapv2.LatLng(streetLightLatitude[i],streetLightLongitude[i]);
-          var lightMarker = new Tmapv2.Marker({
-			position: lightLocation,
-			icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_b_m_l.png",
-			map: map
-		  });
-		  var lightRange = new Tmapv2.Circle({
-			center: lightLocation,
-			radius: 30,
-			strokeColor: "blue",
-			strokeOpacity:0.2,
-			fillColor: "blue",
-			fillOpacity:0.2,
-			map: map
-		  });
-        }
+		    var lightLocation = new Tmapv2.LatLng(streetLightLatitude[i],streetLightLongitude[i]);
+            var lightMarker = new Tmapv2.Marker({
+			    position: lightLocation,
+			    icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_b_m_l.png",
+			    map: map
+		    });
+		    var lightRange = new Tmapv2.Circle({
+			    center: lightLocation,
+			    radius: 30,
+			    strokeColor: "blue",
+			    strokeOpacity: 0.2,
+			    fillColor: "blue",
+			    fillOpacity: 0.2,
+			    map: map
+		    });
+		}
+
+		map.addListener("click", onClick);
     }
 
     function onClick(e){
         removeMarkers();
 		lonlat = e.latLng;
-		marker = new Tmapv2.Marker({
+		var marker = new Tmapv2.Marker({
 			position: new Tmapv2.LatLng(lonlat.lat(),lonlat.lng()),
 			icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_g_m_x.png",
 			map: map
@@ -172,27 +94,15 @@
 		}
 		markers = [];
 	}
-
-	function drawLine(arrPoint) {
-		var polyline_;
-
-		polyline_ = new Tmapv2.Polyline({
-			path : arrPoint,
-			strokeColor : "#DD0000",
-			strokeWeight : 6,
-			map : map
-		});
-		resultDrawArr.push(polyline_);
-	}
 </script>
 </head>
 <body onload="initTmap();">
-  <div id="map_wrap" class="map_wrap3">
-    <div id="map_div"></div>
-    <p id="marker_x">x 좌표: </p>
-    <p id="marker_y">y 좌표: </p>
-  </div>
-  <div class="map_act_btn_wrap clear_box"></div>
-  <p id="result"></p>
+<div id="map_wrap" class="map_wrap3">
+  <div id="map_div"></div>
+  <p id="marker_x">x 좌표: </p>
+  <p id="marker_y">y 좌표: </p>
+</div>
+<div class="map_act_btn_wrap clear_box"></div>
+<p id="result"></p>
 </body>
 </html>
