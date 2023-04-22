@@ -84,8 +84,8 @@
 			map: map
 		});
 		markers.push(marker);
-		document.getElementById("marker_x").innerHTML = "x 좌표: " + lonlat.lng();
-		document.getElementById("marker_y").innerHTML = "y 좌표: " + lonlat.lat();
+		document.getElementById("marker_x").value = JSON.stringify(lonlat.lng());
+		document.getElementById("marker_y").value = JSON.stringify(lonlat.lat());
 	}
 
 	function removeMarkers() {
@@ -99,8 +99,11 @@
 <body onload="initTmap();">
 <div id="map_wrap" class="map_wrap3">
   <div id="map_div"></div>
-  <p id="marker_x">x 좌표: </p>
-  <p id="marker_y">y 좌표: </p>
+  <form method="post">
+    <input type="hidden" id="marker_x" name="marker_x" value="" />
+    <input type="hidden" id="marker_y" name="marker_y" value="" />
+    <button type="submit">경로 재탐색</button>
+  </form>
 </div>
 <div class="map_act_btn_wrap clear_box"></div>
 <p id="result"></p>

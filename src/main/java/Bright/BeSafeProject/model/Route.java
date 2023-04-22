@@ -15,6 +15,7 @@ public class Route {
     private String endAddress;
     private Double[] startLocation;
     private Double[] endLocation;
+    private Double[] passLocation;
     private Double[] showRange;
     private ArrayList<Double> searchRange = new ArrayList<>();
     private ArrayList<Double> waypointLatitudes = new ArrayList<>();
@@ -44,5 +45,24 @@ public class Route {
     public void setAddress(String start,String end){
         setStartAddress(start);
         setEndAddress(end);
+    }
+    public String getHttpRequestRoute(){
+        resetInPath();
+        String HttpRequest = "{\"startX\":"+startLocation[1]
+                +",\"startY\":"+startLocation[0]
+                +",\"angle\":20,\"speed\":1,\"endPoiId\":\"10001\",\"endX\":"+endLocation[1]
+                +",\"endY\":"+endLocation[0];
+        if(passLocation!=null){
+            HttpRequest+=",\"passList\":\""+passLocation[0]+","+passLocation[1]+"\"";
+        }
+        HttpRequest+=",\"reqCoordType\":\"WGS84GEO\",\"startName\":\"%EC%B6%9C%EB%B0%9C\",\"endName\":\"%EB%8F%84%EC%B0%A9\",\"searchOption\":\"10\",\"resCoordType\":\"WGS84GEO\",\"sort\":\"index\"}";
+        return HttpRequest;
+    }
+
+    private void resetInPath(){
+        showRange=null;
+        searchRange=new ArrayList<>();
+        waypointLatitudes=new ArrayList<>();
+        waypointLongitudes=new ArrayList<>();
     }
 }

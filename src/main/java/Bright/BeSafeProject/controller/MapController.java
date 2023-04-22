@@ -28,17 +28,6 @@ public class MapController {
         this.tmapAPIService = tmapAPIService;
     }
 
-    @GetMapping(value = "/map")
-    public String Map(Model model){
-        model.addAttribute("startLocation",gson.toJson(new ArrayList<>(Arrays.asList(route.getStartLocation()))));
-        model.addAttribute("endLocation",gson.toJson(new ArrayList<>(Arrays.asList(route.getEndLocation()))));
-        model.addAttribute("streetLightLatitude",gson.toJson(streetLight.getLatitudeList()));
-        model.addAttribute("streetLightLongitude",gson.toJson(streetLight.getLongitudeList()));
-        model.addAttribute("waypointLatitude",gson.toJson(route.getWaypointLatitudes()));
-        model.addAttribute("waypointLongitude",gson.toJson(route.getWaypointLongitudes()));
-        return "resultView";
-    }
-
     @GetMapping(value = "/search")
     public String routeSetup(){
         streetLight=new StreetLight();
@@ -54,6 +43,31 @@ public class MapController {
         route.setEndLocation(gson.fromJson(endJSON, Double[].class));
         route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
         route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
+        tmapAPIService.callTmapRoute(route);
+        route.setShowRange();
+        publicAPIService.callSecurityLight(streetLight,route.getStartAddress());
+        if(!route.sameAddressCheck())
+            publicAPIService.callSecurityLight(streetLight,route.getEndAddress());
+        publicAPIService.callStreetLamp(streetLight,route.getShowRange());
+        streetLight.setRangeWithRoute(route.getShowRange());
+        return "redirect:/map";
+    }
+
+    @GetMapping(value = "/map")
+    public String Map(Model model){
+        model.addAttribute("startLocation",gson.toJson(new ArrayList<>(Arrays.asList(route.getStartLocation()))));
+        model.addAttribute("endLocation",gson.toJson(new ArrayList<>(Arrays.asList(route.getEndLocation()))));
+        model.addAttribute("streetLightLatitude",gson.toJson(streetLight.getLatitudeList()));
+        model.addAttribute("streetLightLongitude",gson.toJson(streetLight.getLongitudeList()));
+        model.addAttribute("waypointLatitude",gson.toJson(route.getWaypointLatitudes()));
+        model.addAttribute("waypointLongitude",gson.toJson(route.getWaypointLongitudes()));
+        return "resultView";
+    }
+
+    @PostMapping(value = "/map")
+    public String routeReset(@RequestParam("marker_x") String markerXJSON,@RequestParam("marker_y") String markerYJSON)
+            throws IOException, InterruptedException, ParseException {
+        route.setPassLocation(new Double[]{Double.valueOf(markerXJSON), Double.valueOf(markerYJSON)});
         tmapAPIService.callTmapRoute(route);
         route.setShowRange();
         publicAPIService.callSecurityLight(streetLight,route.getStartAddress());

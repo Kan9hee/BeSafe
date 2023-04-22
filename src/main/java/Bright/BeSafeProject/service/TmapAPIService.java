@@ -44,13 +44,7 @@ public class TmapAPIService {
                 .header("accept", "application/json")
                 .header("content-type", "application/json")
                 .header("appKey", tmap_apiKey)
-                .method("POST", HttpRequest.BodyPublishers.ofString(
-                        "{\"startX\":"+route.getStartLocation()[1]
-                                +",\"startY\":"+route.getStartLocation()[0]
-                                +",\"angle\":20,\"speed\":1,\"endPoiId\":\"10001\",\"endX\":"+route.getEndLocation()[1]
-                                +",\"endY\":"+route.getEndLocation()[0]
-                                +",\"reqCoordType\":\"WGS84GEO\",\"startName\":\"%EC%B6%9C%EB%B0%9C\",\"endName\":\"%EB%8F%84%EC%B0%A9\",\"searchOption\":\"10\",\"resCoordType\":\"WGS84GEO\",\"sort\":\"index\"}"
-                ))
+                .method("POST", HttpRequest.BodyPublishers.ofString(route.getHttpRequestRoute()))
                 .build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString());
         jsonParser = new JSONParser();
