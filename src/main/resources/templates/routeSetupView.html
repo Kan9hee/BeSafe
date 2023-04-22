@@ -17,7 +17,7 @@
 		map = new Tmapv2.Map("map_div", {
 		center : new Tmapv2.LatLng(36.333880369392965, 127.39340505429725),
 			width : "100%",
-			height : "600px",
+			height : "650px",
 			zoom : 18
 		});
 		map.addListener("click", onClick);
@@ -28,7 +28,7 @@
 		lonlat = e.latLng;
 		marker = new Tmapv2.Marker({
 			position: new Tmapv2.LatLng(lonlat.lat(),lonlat.lng()),
-			icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
+			icon : "http://localhost:8080/img/EndMarker.png",
 			map: map
 		});
 		markers.push(marker);
@@ -37,7 +37,7 @@
 		if(start[0]!=null){
 		    var before = new Tmapv2.Marker({
 		        position: new Tmapv2.LatLng(start[0],start[1]),
-		        icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
+		        icon : "http://localhost:8080/img/StartMarker.png",
 		        map: map
 		    });
 		    markers.push(before);
@@ -57,11 +57,11 @@
 </script>
 </head>
 <body onload="initTmap();">
-    <div id="map_div"></div>
     <form method="post">
         <input type="hidden" id="start" name="start" value="" />
         <input type="hidden" id="end" name="end" value="" />
         <button type="submit">경로탐색</button>
     </form>
+    <div id="map_div"></div>
 </body>
 </html>

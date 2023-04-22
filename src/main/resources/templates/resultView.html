@@ -25,22 +25,8 @@
 		map = new Tmapv2.Map("map_div", {
 		center : new Tmapv2.LatLng(startLocation[0], startLocation[1]),
 			width : "100%",
-			height : "600px",
+			height : "650px",
 			zoom : 18
-		});
-
-		marker_s = new Tmapv2.Marker({
-				position : new Tmapv2.LatLng(startLocation[0], startLocation[1]),
-				icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_s.png",
-				iconSize : new Tmapv2.Size(24, 38),
-				map : map
-		});
-
-		marker_e = new Tmapv2.Marker({
-				position : new Tmapv2.LatLng(endLocation[0], endLocation[1]),
-				icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_r_m_e.png",
-				iconSize : new Tmapv2.Size(24, 38),
-				map : map
 		});
 
 		for(var i=0;i<waypointLatitude.length;i++){
@@ -58,19 +44,31 @@
 		    var lightLocation = new Tmapv2.LatLng(streetLightLatitude[i],streetLightLongitude[i]);
             var lightMarker = new Tmapv2.Marker({
 			    position: lightLocation,
-			    icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_b_m_l.png",
+			    icon : "http://localhost:8080/img/LightMarker.png",
 			    map: map
 		    });
 		    var lightRange = new Tmapv2.Circle({
 			    center: lightLocation,
-			    radius: 30,
+			    radius: 20,
 			    strokeColor: "blue",
-			    strokeOpacity: 0.2,
+			    strokeOpacity: 0.1,
 			    fillColor: "blue",
-			    fillOpacity: 0.2,
+			    fillOpacity: 0.1,
 			    map: map
 		    });
 		}
+
+		marker_s = new Tmapv2.Marker({
+				position : new Tmapv2.LatLng(startLocation[0], startLocation[1]),
+				icon : "http://localhost:8080/img/StartMarker.png",
+				map : map
+		});
+
+		marker_e = new Tmapv2.Marker({
+				position : new Tmapv2.LatLng(endLocation[0], endLocation[1]),
+				icon : "http://localhost:8080/img/EndMarker.png",
+				map : map
+		});
 
 		map.addListener("click", onClick);
     }
@@ -80,7 +78,7 @@
 		lonlat = e.latLng;
 		var marker = new Tmapv2.Marker({
 			position: new Tmapv2.LatLng(lonlat.lat(),lonlat.lng()),
-			icon : "http://tmapapi.sktelecom.com/upload/tmap/marker/pin_g_m_x.png",
+			icon : "http://localhost:8080/img/LocationMarker.png",
 			map: map
 		});
 		markers.push(marker);
@@ -98,12 +96,13 @@
 </head>
 <body onload="initTmap();">
 <div id="map_wrap" class="map_wrap3">
-  <div id="map_div"></div>
   <form method="post">
     <input type="hidden" id="marker_x" name="marker_x" value="" />
     <input type="hidden" id="marker_y" name="marker_y" value="" />
-    <button type="submit">경로 재탐색</button>
+    <button type="submit">경유지 추가</button>
   </form>
+  <button onclick="location.href='./search'">경로 재탐색</button>
+  <div id="map_div"></div>
 </div>
 <div class="map_act_btn_wrap clear_box"></div>
 <p id="result"></p>
