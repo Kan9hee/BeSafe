@@ -43,13 +43,7 @@ public class MapController {
         route.setEndLocation(gson.fromJson(endJSON, Double[].class));
         route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
         route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
-        tmapAPIService.callTmapRoute(route);
-        route.setShowRange();
-        publicAPIService.callSecurityLight(streetLight,route.getStartAddress());
-        if(!route.sameAddressCheck())
-            publicAPIService.callSecurityLight(streetLight,route.getEndAddress());
-        publicAPIService.callStreetLamp(streetLight,route.getShowRange());
-        streetLight.setRangeWithRoute(route.getShowRange());
+        searchRouteAndLights();
         return "redirect:/map";
     }
 
@@ -68,6 +62,11 @@ public class MapController {
     public String routeReset(@RequestParam("marker_x") String markerXJSON,@RequestParam("marker_y") String markerYJSON)
             throws IOException, InterruptedException, ParseException {
         route.setPassLocation(new Double[]{Double.valueOf(markerXJSON), Double.valueOf(markerYJSON)});
+        searchRouteAndLights();
+        return "redirect:/map";
+    }
+
+    private void searchRouteAndLights() throws IOException, ParseException, InterruptedException {
         tmapAPIService.callTmapRoute(route);
         route.setShowRange();
         publicAPIService.callSecurityLight(streetLight,route.getStartAddress());
@@ -75,6 +74,5 @@ public class MapController {
             publicAPIService.callSecurityLight(streetLight,route.getEndAddress());
         publicAPIService.callStreetLamp(streetLight,route.getShowRange());
         streetLight.setRangeWithRoute(route.getShowRange());
-        return "redirect:/map";
     }
 }
