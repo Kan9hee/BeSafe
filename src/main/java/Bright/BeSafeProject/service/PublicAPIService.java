@@ -26,13 +26,13 @@ import java.util.List;
 @Service
 public class PublicAPIService {
 
-    private Double streetLatitude;
-    private Double streetLongitude;
+    private Double lightLatitude;
+    private Double lightLongitude;
 
     @Value("${PUBLIC_DATA_KEY}")
     private String public_apiKey;
 
-    public void callSecurityLight(StreetLight streetLight,String address) throws IOException, ParseException {
+    public void callSecurityLight(StreetLight streetLight,Double[] range,String address) throws IOException, ParseException {
         StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/6300000/GetScltListService1/getScltList1");
         urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + public_apiKey);
         urlBuilder.append("&" + URLEncoder.encode("LNMADR", "UTF-8") + "=" + URLEncoder.encode(address, "UTF-8"));
@@ -43,7 +43,6 @@ public class PublicAPIService {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Content-type", "application/json");
-        System.out.println("방범등 API 호출, Response code: " + conn.getResponseCode());
         BufferedReader rd;
         if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
             rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -66,8 +65,15 @@ public class PublicAPIService {
         JSONArray list = (JSONArray) x3.get("item");
         for (int i = 0; i < list.size(); i++) {
             JSONObject object = (JSONObject) list.get(i);
-            streetLight.addLatitude((Double) object.get("LATITUDE"));
-            streetLight.addLongitude((Double) object.get("LONGITUDE"));
+            lightLatitude=(Double) object.get("LATITUDE");
+            lightLongitude=(Double) object.get("LONGITUDE");
+            if (lightLatitude >= range[0]
+                    && lightLongitude >= range[1]
+                    && lightLatitude <= range[2]
+                    && lightLongitude <= range[3]) {
+                streetLight.addLatitude(lightLatitude);
+                streetLight.addLongitude(lightLongitude);
+            }
         }
     }
 
@@ -80,13 +86,14 @@ public class PublicAPIService {
                 .runOn(Schedulers.boundedElastic())
                 .flatMap(this::streetLampSearch)
                 .sequential()
-                .subscribe(list-> {
+                .doOnNext(list-> {
                     try {
                         parseStreetLampAPIResult(streetLight,range,list);
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
-                });
+                })
+                .blockLast();
     }
 
     private Mono<String> streetLampSearch(int page) {
@@ -118,14 +125,14 @@ public class PublicAPIService {
         JSONArray list = (JSONArray) jsonObject.get("data");
         for (int i = 0; i < list.size(); i++) {
             JSONObject object = (JSONObject) list.get(i);
-            streetLatitude = Double.valueOf((String) object.get("위도"));
-            streetLongitude = Double.valueOf((String) object.get("경도"));
-            if (streetLatitude >= range[0]
-                    && streetLongitude >= range[1]
-                    && streetLatitude <= range[2]
-                    && streetLongitude <= range[3]) {
-                streetLight.addLatitude(streetLatitude);
-                streetLight.addLongitude(streetLongitude);
+            lightLatitude = Double.valueOf((String) object.get("위도"));
+            lightLongitude = Double.valueOf((String) object.get("경도"));
+            if (lightLatitude >= range[0]
+                    && lightLongitude >= range[1]
+                    && lightLatitude <= range[2]
+                    && lightLongitude <= range[3]) {
+                streetLight.addLatitude(lightLatitude);
+                streetLight.addLongitude(lightLongitude);
             }
         }
 
