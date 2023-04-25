@@ -19,15 +19,4 @@ public class StreetLight {
     public void addLongitude(Double Longitude){
         longitudeList.add(Longitude);
     }
-    public void setRangeWithRoute(Double[] routeRange){
-        for(int i=0;i<latitudeList.size();) {
-            if (latitudeList.get(i) >= routeRange[0] && longitudeList.get(i) >= routeRange[1]
-                    && latitudeList.get(i) <= routeRange[2] && longitudeList.get(i) <= routeRange[3]) {
-                i++;
-            }else{
-                latitudeList.remove(i);
-                longitudeList.remove(i);
-            }
-        }
-    }
 }

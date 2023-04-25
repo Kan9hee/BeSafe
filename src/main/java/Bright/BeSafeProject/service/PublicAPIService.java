@@ -13,12 +13,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,36 +24,17 @@ public class PublicAPIService {
     private Double lightLatitude;
     private Double lightLongitude;
 
+    private ExchangeStrategies exchangeStrategies=ExchangeStrategies.builder()
+            .codecs(configure->configure.defaultCodecs().maxInMemorySize(-1))
+            .build();
+
     @Value("${PUBLIC_DATA_KEY}")
     private String public_apiKey;
 
     public void callSecurityLight(StreetLight streetLight,Double[] range,String address) throws IOException, ParseException {
-        StringBuilder urlBuilder = new StringBuilder("https://apis.data.go.kr/6300000/GetScltListService1/getScltList1");
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + public_apiKey);
-        urlBuilder.append("&" + URLEncoder.encode("LNMADR", "UTF-8") + "=" + URLEncoder.encode(address, "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("2147483647", "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("type", "UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
-        URL url = new URL(urlBuilder.toString());
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Content-type", "application/json");
-        BufferedReader rd;
-        if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        } else {
-            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-        }
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = rd.readLine()) != null) {
-            sb.append(line);
-        }
-        rd.close();
-        conn.disconnect();
 
         JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(sb.toString());
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(getSecurityLightJSON(address));
         JSONObject x1 = (JSONObject) jsonObject.get("response");
         JSONObject x2 = (JSONObject) x1.get("body");
         JSONObject x3 = (JSONObject) x2.get("items");
@@ -84,7 +60,7 @@ public class PublicAPIService {
         Flux.fromIterable(pages)
                 .parallel()
                 .runOn(Schedulers.boundedElastic())
-                .flatMap(this::streetLampSearch)
+                .flatMap(this::setStreetLampMono)
                 .sequential()
                 .doOnNext(list-> {
                     try {
@@ -96,11 +72,24 @@ public class PublicAPIService {
                 .blockLast();
     }
 
-    private Mono<String> streetLampSearch(int page) {
+    private String getSecurityLightJSON(String address) {
 
-        ExchangeStrategies exchangeStrategies=ExchangeStrategies.builder()
-                .codecs(configure->configure.defaultCodecs().maxInMemorySize(-1))
-                .build();
+        return WebClient
+                .create("https://apis.data.go.kr/6300000/GetScltListService1/getScltList1")
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("serviceKey", public_apiKey)
+                        .queryParam("LNMADR", address)
+                        .queryParam("pageNo", "1")
+                        .queryParam("numOfRows", "2147483647")
+                        .queryParam("type", "json")
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+    }
+
+    private Mono<String> setStreetLampMono(int page) {
 
         return WebClient
                 .builder()
