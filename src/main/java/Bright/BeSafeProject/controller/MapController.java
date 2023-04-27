@@ -30,7 +30,6 @@ public class MapController {
 
     @GetMapping(value = "/search")
     public String routeSetup(){
-        streetLight=new StreetLight();
         route=new Route();
         gson=new Gson();
         return "routeSetupView";
@@ -67,6 +66,7 @@ public class MapController {
     }
 
     private void searchRouteAndLights() throws IOException, ParseException, InterruptedException {
+        streetLight=new StreetLight();
         tmapAPIService.callTmapRoute(route);
         route.setShowRange();
         publicAPIService.callSecurityLight(streetLight,route.getShowRange(),route.getStartAddress());

@@ -124,7 +124,5 @@ public class PublicAPIService {
                 streetLight.addLongitude(lightLongitude);
             }
         }
-
-        System.out.println("parse complete");
     }
 }
