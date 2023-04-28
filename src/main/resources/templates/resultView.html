@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>simpleMap</title>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=TMAP_APPKEY"></script>
+  <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=ulfI10zHl6NeFCxPcyEd2g9jP6q4nNh3fnf75cV7"></script>
   <script type="text/javascript" th:inline="javascript">
 	var map;
 	var lonlat;
@@ -42,11 +42,6 @@
 
 		for ( var i=0; i<streetLightLatitude.length; i++){
 		    var lightLocation = new Tmapv2.LatLng(streetLightLatitude[i],streetLightLongitude[i]);
-            var lightMarker = new Tmapv2.Marker({
-			    position: lightLocation,
-			    icon : "http://localhost:8080/img/LightMarker.png",
-			    map: map
-		    });
 		    var lightRange = new Tmapv2.Circle({
 			    center: lightLocation,
 			    radius: 20,
@@ -56,17 +51,22 @@
 			    fillOpacity: 0.1,
 			    map: map
 		    });
+            var lightMarker = new Tmapv2.Marker({
+			    position: lightLocation,
+			    icon : "http://localhost:8080/img/marker/LightMarker.png",
+			    map: map
+		    });
 		}
 
 		marker_s = new Tmapv2.Marker({
 				position : new Tmapv2.LatLng(startLocation[0], startLocation[1]),
-				icon : "http://localhost:8080/img/StartMarker.png",
+				icon : "http://localhost:8080/img/marker/StartMarker.png",
 				map : map
 		});
 
 		marker_e = new Tmapv2.Marker({
 				position : new Tmapv2.LatLng(endLocation[0], endLocation[1]),
-				icon : "http://localhost:8080/img/EndMarker.png",
+				icon : "http://localhost:8080/img/marker/EndMarker.png",
 				map : map
 		});
 
@@ -78,7 +78,7 @@
 		lonlat = e.latLng;
 		var marker = new Tmapv2.Marker({
 			position: new Tmapv2.LatLng(lonlat.lat(),lonlat.lng()),
-			icon : "http://localhost:8080/img/LocationMarker.png",
+			icon : "http://localhost:8080/img/marker/LocationMarker.png",
 			map: map
 		});
 		markers.push(marker);
@@ -102,6 +102,8 @@
     <button type="submit">경유지 추가</button>
   </form>
   <button onclick="location.href='./search'">경로 재탐색</button>
+  <button>경로 저장</button>
+  <button>로그아웃</button>
   <div id="map_div"></div>
 </div>
 <div class="map_act_btn_wrap clear_box"></div>

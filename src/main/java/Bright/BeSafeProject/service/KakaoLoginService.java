@@ -1,5 +1,6 @@
 package Bright.BeSafeProject.service;
 
+import Bright.BeSafeProject.model.Member;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -34,7 +35,7 @@ public class KakaoLoginService {
         return (String)jsonObject.get("access_token");
     }
 
-    public void callUserInfo(String token){
+    public Member callUserInfo(String token) throws ParseException {
         String userInfoJSON = WebClient.builder()
                 .baseUrl("https://kapi.kakao.com/v2/user/me")
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -44,5 +45,13 @@ public class KakaoLoginService {
                 .bodyToMono(String.class)
                 .block();
         System.out.println(userInfoJSON);
+
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(userInfoJSON);
+        JSONObject account = (JSONObject) jsonObject.get("kakao_account");
+        JSONObject profile = (JSONObject) account.get("profile");
+        String nickname = (String) profile.get("nickname");
+        String email=(String)account.get("email");
+        return new Member(nickname,email);
     }
 }

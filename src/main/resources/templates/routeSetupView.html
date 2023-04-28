@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>simpleMap</title>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=TMAP_APPKEY"></script>
+  <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=ulfI10zHl6NeFCxPcyEd2g9jP6q4nNh3fnf75cV7"></script>
   <script type="text/javascript">
 	var map;
 	var lonlat;
@@ -28,7 +28,7 @@
 		lonlat = e.latLng;
 		marker = new Tmapv2.Marker({
 			position: new Tmapv2.LatLng(lonlat.lat(),lonlat.lng()),
-			icon : "http://localhost:8080/img/EndMarker.png",
+			icon : "http://localhost:8080/img/marker/EndMarker.png",
 			map: map
 		});
 		markers.push(marker);
@@ -37,7 +37,7 @@
 		if(start[0]!=null){
 		    var before = new Tmapv2.Marker({
 		        position: new Tmapv2.LatLng(start[0],start[1]),
-		        icon : "http://localhost:8080/img/StartMarker.png",
+		        icon : "http://localhost:8080/img/marker/StartMarker.png",
 		        map: map
 		    });
 		    markers.push(before);
