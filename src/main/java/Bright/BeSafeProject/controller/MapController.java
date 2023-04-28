@@ -6,6 +6,7 @@ import Bright.BeSafeProject.service.PublicAPIService;
 import Bright.BeSafeProject.service.TmapAPIService;
 import com.google.gson.Gson;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +18,10 @@ import java.util.Arrays;
 @Controller
 public class MapController {
 
-    private final PublicAPIService publicAPIService;
-    private final TmapAPIService tmapAPIService;
+    @Autowired
+    PublicAPIService publicAPIService;
+    @Autowired
+    TmapAPIService tmapAPIService;
     private StreetLight streetLight;
     private Route route;
     private Gson gson;
