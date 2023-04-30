@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-public class KakaoLoginService {
+public class KakaoService {
 
     @Value("${KAKAO_CLIENT_ID}")
     private String kakao_client_id;
@@ -28,8 +28,6 @@ public class KakaoLoginService {
                 .bodyToMono(String.class)
                 .block();
 
-        System.out.println(tokenJSON);
-
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(tokenJSON);
         return (String)jsonObject.get("access_token");
@@ -44,7 +42,6 @@ public class KakaoLoginService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        System.out.println(userInfoJSON);
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(userInfoJSON);
@@ -52,6 +49,18 @@ public class KakaoLoginService {
         JSONObject profile = (JSONObject) account.get("profile");
         String nickname = (String) profile.get("nickname");
         String email=(String)account.get("email");
-        return new Member(nickname,email);
+        return new Member(token,nickname,email);
+    }
+
+    public void returnAccessToken(String token){
+        String returnJSON = WebClient.builder()
+                .baseUrl("https://kapi.kakao.com/v1/user/logout")
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .build()
+                .get()
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        System.out.println(returnJSON);
     }
 }

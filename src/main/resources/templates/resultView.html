@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>simpleMap</title>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=ulfI10zHl6NeFCxPcyEd2g9jP6q4nNh3fnf75cV7"></script>
+  <script src="https://apis.openapi.sk.com/tmap/jsv2?version=1&appKey=TMAP_APPKEY"></script>
   <script type="text/javascript" th:inline="javascript">
 	var map;
 	var lonlat;
@@ -103,7 +103,7 @@
   </form>
   <button onclick="location.href='./search'">경로 재탐색</button>
   <button>경로 저장</button>
-  <button>로그아웃</button>
+  <button type="button" onclick="location.href='/logout'">로그아웃</button>
   <div id="map_div"></div>
 </div>
 <div class="map_act_btn_wrap clear_box"></div>
