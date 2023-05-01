@@ -9,4 +9,7 @@ public class HomeController {
     public String permission(){
         return "loginView";
     }
+
+    @GetMapping(value = "test")
+    public String test(){return "testView";}
 }
