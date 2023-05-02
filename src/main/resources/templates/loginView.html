@@ -1,15 +1,43 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+        body{
+            margin: 0;
+            padding: 0;
+        }
+        .main {
+            height: 100vh;
+            background: url(http://localhost:8080/img/background.jpg) no-repeat center;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+        .main_content{
+            position: absolute;
+            top: 50%;
+            left: 35%;
+            transform: translate( -50%, -65% );
+            color: white;
+        }
+        #title{
+            font-size: 40px;
+        }
+    </style>
 </head>
 <body>
-<div class="main_page">
-    <img src="http://localhost:8080/img/background.jpg" width="100%" height="700px">
-    <a class="p-2" href="https://kauth.kakao.com/oauth/authorize?client_id=KAKAO_CLIENT_ID&redirect_uri=http://localhost:8080/member/kakao&response_type=code">
-        <img src="http://localhost:8080/img/button/kakaoLogin.png">
-    </a>
+<div class="main">
+    <div class="main_content">
+        <div id="title">
+            <h1>안전하길</h1>
+        </div>
+        <div id="subTitle"><h3>도시조명 공공데이터를 이용한<br>
+            안전 경로 제공 서비스</h3><div>
+        <a class="p-2" href="https://kauth.kakao.com/oauth/authorize?client_id=KAKAO_CLIENT_ID&redirect_uri=http://localhost:8080/member/kakao&response_type=code">
+            <img src="http://localhost:8080/img/button/kakaoLogin.png">
+        </a>
+    </div>
 </div>
 </body>
 </html>

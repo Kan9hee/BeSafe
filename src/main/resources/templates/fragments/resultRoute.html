@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>simpleMap</title>
+  <script type="text/javascript" th:inline="javascript">
+	var map;
+	var lonlat;
+	var marker_s, marker_e;
+	var polyline;
+	var streetLightLatitude = JSON.parse([[${streetLightLatitude}]]);
+	var streetLightLongitude = JSON.parse([[${streetLightLongitude}]]);
+	var startLocation = JSON.parse([[${startLocation}]]);
+	var endLocation = JSON.parse([[${endLocation}]]);
+	var waypointLatitude = JSON.parse([[${waypointLatitude}]]);
+	var waypointLongitude = JSON.parse([[${waypointLongitude}]]);
+	var markers = [];
+	var drawInfoArr = [];
+	var streetLightMarker = [];
+	var streetLightRange = [];
+
+	function initTmap() {
+		map = new Tmapv2.Map("map_div", {
+		center : new Tmapv2.LatLng(startLocation[0], startLocation[1]),
+			height: "100vh",
+			zoom : 18
+		});
+
+		for(var i=0;i<waypointLatitude.length;i++){
+		  drawInfoArr.push(new Tmapv2.LatLng(waypointLatitude[i],waypointLongitude[i]));
+		}
+
+		polyline = new Tmapv2.Polyline({
+			path : drawInfoArr,
+			strokeColor : "#DD0000",
+			strokeWeight : 6,
+			map : map
+		});
+
+		for ( var i=0; i<streetLightLatitude.length; i++){
+		    var lightLocation = new Tmapv2.LatLng(streetLightLatitude[i],streetLightLongitude[i]);
+		    var lightRange = new Tmapv2.Circle({
+			    center: lightLocation,
+			    radius: 20,
+			    strokeColor: "blue",
+			    strokeOpacity: 0.1,
+			    fillColor: "blue",
+			    fillOpacity: 0.1,
+			    map: map
+		    });
+            var lightMarker = new Tmapv2.Marker({
+			    position: lightLocation,
+			    icon : "http://localhost:8080/img/marker/LightMarker.png",
+			    map: map
+		    });
+		}
+
+		marker_s = new Tmapv2.Marker({
+				position : new Tmapv2.LatLng(startLocation[0], startLocation[1]),
+				icon : "http://localhost:8080/img/marker/StartMarker.png",
+				map : map
+		});
+
+		marker_e = new Tmapv2.Marker({
+				position : new Tmapv2.LatLng(endLocation[0], endLocation[1]),
+				icon : "http://localhost:8080/img/marker/EndMarker.png",
+				map : map
+		});
+
+		map.addListener("click", onClick);
+    }
+
+    function onClick(e){
+        removeMarkers();
+		lonlat = e.latLng;
+		var marker = new Tmapv2.Marker({
+			position: new Tmapv2.LatLng(lonlat.lat(),lonlat.lng()),
+			icon : "http://localhost:8080/img/marker/LocationMarker.png",
+			map: map
+		});
+		markers.push(marker);
+		document.getElementById("marker_x").value = JSON.stringify(lonlat.lng());
+		document.getElementById("marker_y").value = JSON.stringify(lonlat.lat());
+	}
+
+	function removeMarkers() {
+		for (var i = 0; i < markers.length; i++) {
+			markers[i].setMap(null);
+		}
+		markers = [];
+	}
+</script>
+</head>
+<body onload="initTmap();">
+<div id="map_wrap" class="map_wrap3">
+  <div id="map_div"></div>
+  <form class="content" method="post">
+    <input type="hidden" id="marker_x" name="marker_x" value="" />
+    <input type="hidden" id="marker_y" name="marker_y" value="" />
+    <button type="submit" class="btn btn-primary">경유지 추가</button>
+  </form>
+</div>
+<div class="map_act_btn_wrap clear_box"></div>
+<p id="result"></p>
+</body>
+</html>
