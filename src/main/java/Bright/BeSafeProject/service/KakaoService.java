@@ -53,14 +53,11 @@ public class KakaoService {
     }
 
     public void returnAccessToken(String token){
-        String returnJSON = WebClient.builder()
+        WebClient.builder()
                 .baseUrl("https://kapi.kakao.com/v1/user/logout")
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .build()
-                .get()
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-        System.out.println(returnJSON);
+                .post()
+                .retrieve();
     }
 }
