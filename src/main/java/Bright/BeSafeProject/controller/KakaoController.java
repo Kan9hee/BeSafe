@@ -1,8 +1,11 @@
 package Bright.BeSafeProject.controller;
 
+import Bright.BeSafeProject.dto.MemberDTO;
+import Bright.BeSafeProject.entity.MemberEntity;
 import Bright.BeSafeProject.model.Member;
+import Bright.BeSafeProject.repository.MemberRepository;
+import Bright.BeSafeProject.service.DatabaseService;
 import Bright.BeSafeProject.service.KakaoService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -21,6 +24,9 @@ public class KakaoController {
     @Autowired
     KakaoService kakaoService;
 
+    @Autowired
+    DatabaseService databaseService;
+
     @GetMapping(value = "/member/kakao")
     public String kakaoCode(@RequestParam String code,HttpServletRequest request) throws ParseException {
         String accessToken = kakaoService.callAccessToken(code);
@@ -28,6 +34,7 @@ public class KakaoController {
         HttpSession session = request.getSession();
         session.setMaxInactiveInterval(0);
         session.setAttribute("loginMember", currentMember);
+        databaseService.saveMemberData(new MemberDTO(currentMember.getNickname(),currentMember.getEmail()));
         return "redirect:../search";
     }
 
