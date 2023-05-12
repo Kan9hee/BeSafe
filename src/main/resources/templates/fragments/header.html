@@ -29,7 +29,7 @@
                     <a href="/logout" th:href="@{#}" onclick="$('#form').submit();">
                         <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>&nbsp;로그아웃
                     </a>
-                    <form style="visibility: hidden" id="form" method="get" action="#" th:action="@{/logout}"></form>
+                    <form style="visibility: hidden" id="form" method="post" action="#" th:action="@{/logout}"></form>
                 </li>
             </ul>
         </div>

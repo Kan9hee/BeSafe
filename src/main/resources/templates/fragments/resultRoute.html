@@ -81,6 +81,7 @@
 		markers.push(marker);
 		document.getElementById("marker_x").value = JSON.stringify(lonlat.lng());
 		document.getElementById("marker_y").value = JSON.stringify(lonlat.lat());
+		document.getElementById("search").disabled=false;
 	}
 
 	function removeMarkers() {
@@ -97,7 +98,7 @@
   <form class="content" method="post">
     <input type="hidden" id="marker_x" name="marker_x" value="" />
     <input type="hidden" id="marker_y" name="marker_y" value="" />
-    <button type="submit" class="btn btn-primary">경유지 추가</button>
+    <button type="submit" id="search" class="btn btn-primary" disabled="disabled">경유지 추가</button>
   </form>
 </div>
 <div class="map_act_btn_wrap clear_box"></div>

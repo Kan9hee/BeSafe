@@ -40,6 +40,7 @@
 		    markers.push(before);
 		    document.getElementById("start").value = JSON.stringify(start);
 		    document.getElementById("end").value = JSON.stringify(end);
+		    document.getElementById("search").disabled=false;
 		}
 	}
 
@@ -58,7 +59,7 @@
     <form class="content" method="post">
         <input type="hidden" id="start" name="start" value="" />
         <input type="hidden" id="end" name="end" value="" />
-        <button type="submit" class="btn btn-primary">경로탐색</button>
+        <button type="submit" id="search" class="btn btn-primary" disabled="disabled">경로탐색</button>
     </form>
 </body>
 </html>
