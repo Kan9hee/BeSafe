@@ -1,9 +1,7 @@
 package Bright.BeSafeProject.controller;
 
 import Bright.BeSafeProject.dto.MemberDTO;
-import Bright.BeSafeProject.entity.MemberEntity;
 import Bright.BeSafeProject.model.Member;
-import Bright.BeSafeProject.repository.MemberRepository;
 import Bright.BeSafeProject.service.DatabaseService;
 import Bright.BeSafeProject.service.KakaoService;
 import jakarta.servlet.http.HttpServletRequest;

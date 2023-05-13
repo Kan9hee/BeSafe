@@ -1,10 +1,15 @@
 package Bright.BeSafeProject.controller;
 
+import Bright.BeSafeProject.dto.MemberDTO;
+import Bright.BeSafeProject.dto.RouteDTO;
+import Bright.BeSafeProject.model.Member;
 import Bright.BeSafeProject.model.Route;
 import Bright.BeSafeProject.model.StreetLight;
+import Bright.BeSafeProject.service.DatabaseService;
 import Bright.BeSafeProject.service.PublicAPIService;
 import Bright.BeSafeProject.service.TmapAPIService;
 import com.google.gson.Gson;
+import jakarta.servlet.http.HttpServletRequest;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,7 +27,10 @@ public class MapController {
     PublicAPIService publicAPIService;
     @Autowired
     TmapAPIService tmapAPIService;
+    @Autowired
+    DatabaseService databaseService;
     private StreetLight streetLight;
+    private Member member;
     private Route route;
     private Gson gson;
 
@@ -32,9 +40,10 @@ public class MapController {
     }
 
     @GetMapping(value = "/search")
-    public String routeSetup(){
+    public String routeSetup(HttpServletRequest request){
         route=new Route();
         gson=new Gson();
+        member=(Member)request.getSession().getAttribute("loginMember");
         return "routeSetupView";
     }
 
@@ -45,6 +54,9 @@ public class MapController {
         route.setEndLocation(gson.fromJson(endJSON, Double[].class));
         route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
         route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
+        databaseService.saveRouteData(new RouteDTO(member.getEmail(),
+                route.getStartAddress(), route.getStartLocation(),
+                route.getEndAddress(), route.getEndLocation(),null));
         searchRouteAndLights();
         return "redirect:/map";
     }
