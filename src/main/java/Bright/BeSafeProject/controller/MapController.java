@@ -52,11 +52,13 @@ public class MapController {
             throws IOException, InterruptedException, ParseException {
         route.setStartLocation(gson.fromJson(startJSON, Double[].class));
         route.setEndLocation(gson.fromJson(endJSON, Double[].class));
-        route.setStartAddress(tmapAPIService.findAddress(route.getStartLocation()));
-        route.setEndAddress(tmapAPIService.findAddress(route.getEndLocation()));
+        String[] startAd=tmapAPIService.findAddress(route.getStartLocation()).split(",");
+        String[] endAd=tmapAPIService.findAddress(route.getEndLocation()).split(",");
+        route.setStartAddress(startAd[0]);
+        route.setEndAddress(endAd[0]);
         databaseService.saveRouteData(new RouteDTO(member.getEmail(),
-                route.getStartAddress(), route.getStartLocation(),
-                route.getEndAddress(), route.getEndLocation(),null));
+                startAd[1], route.getStartLocation(),
+                endAd[1], route.getEndLocation(),null));
         searchRouteAndLights();
         return "redirect:/map";
     }

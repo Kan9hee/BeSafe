@@ -32,7 +32,7 @@ public class DatabaseService {
 
     public void saveRouteData(RouteDTO routeDTO) {
         try {
-            routeRepository.save(routeDTO.toEntity());
+            routeRepository.saveIfNotDuplicate(routeDTO.toEntity());
         }catch (DataIntegrityViolationException e){
             System.out.println("이미 찾은 경로입니다.");
         }

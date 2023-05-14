@@ -25,7 +25,7 @@ public class TmapAPIService {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://apis.openapi.sk.com/tmap/geo/reversegeocoding?version=1&lat="+location[0]
-                        +"&lon="+location[1]+"&coordType=WGS84GEO&addressType=A01&newAddressExtend=Y"))
+                        +"&lon="+location[1]+"&coordType=WGS84GEO&addressType=A00&newAddressExtend=Y"))
                 .header("accept", "application/json")
                 .header("appKey", tmap_apiKey)
                 .method("GET", HttpRequest.BodyPublishers.noBody())
