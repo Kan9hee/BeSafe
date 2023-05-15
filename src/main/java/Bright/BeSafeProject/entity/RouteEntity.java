@@ -28,6 +28,8 @@ public class RouteEntity {
     @Column(nullable = true)
     private Double passLongitude;
 
+    public RouteEntity(){}
+
     public RouteEntity(String email,
                        String startAddress, Double[] start,
                        String endAddress, Double[] end,
