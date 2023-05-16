@@ -5,9 +5,17 @@ import Bright.BeSafeProject.dto.RouteDTO;
 import Bright.BeSafeProject.model.Member;
 import Bright.BeSafeProject.repository.MemberRepository;
 import Bright.BeSafeProject.repository.RouteRepository;
+import com.google.gson.Gson;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class DatabaseService {
@@ -36,7 +44,18 @@ public class DatabaseService {
         }
     }
 
-    public void loadMemberHistory(Member member){
-        System.out.println(routeRepository.findByEmail(member.getEmail()));
+    public List<RouteDTO> getMemberHistory(Member member) throws ParseException {
+        List<RouteDTO> resultAddressList=new ArrayList<>();
+        JSONParser jsonParser = new JSONParser();
+        JSONArray memberLog = (JSONArray) jsonParser.parse(loadRouteData(member));
+        for(Object object:memberLog){
+            JSONObject resultAddress=(JSONObject)object;
+            resultAddressList.add(new RouteDTO(resultAddress));
+        }
+        return resultAddressList;
+    }
+
+    private String loadRouteData(Member member){
+        return new Gson().toJson(routeRepository.findByEmail(member.getEmail()));
     }
 }

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>History</title>
+</head>
+<body>
+<div>
+  <div>
+    <h1>사용자 기록</h1>
+  </div>
+  <table class="table">
+    <thead>
+    <tr>
+      <th>출발지</th>
+      <th>도착지</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="log : ${log}">
+      <td th:text="${log.startAddress}">출발지</td>
+      <td th:text="${log.endAddress}">도착지</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
