@@ -85,10 +85,10 @@ public class MapController {
     private void searchRouteAndLights() throws IOException, ParseException, InterruptedException {
         streetLight=new StreetLight();
         tmapAPIService.callTmapRoute(route);
-        route.setShowRange();
+        route.setShowMaxRange();
         publicAPIService.callSecurityLight(streetLight,route.getShowRange(),route.getStartAddress());
         if(!route.sameAddressCheck())
             publicAPIService.callSecurityLight(streetLight,route.getShowRange(),route.getEndAddress());
-        publicAPIService.callStreetLamp(streetLight,route.getShowRange());
+        publicAPIService.callStreetLamp(streetLight,route);
     }
 }

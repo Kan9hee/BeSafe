@@ -21,7 +21,7 @@ public class Route {
     private ArrayList<Double> waypointLatitudes = new ArrayList<>();
     private ArrayList<Double> waypointLongitudes = new ArrayList<>();
 
-    public void setShowRange(){
+    public void setShowMaxRange(){
         showRange= new Double[]{startLocation[0], startLocation[1], endLocation[0], endLocation[1]};
         if(showRange[0]>showRange[2]){
             showRange[0]=endLocation[0];

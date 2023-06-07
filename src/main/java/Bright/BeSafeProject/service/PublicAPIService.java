@@ -1,5 +1,6 @@
 package Bright.BeSafeProject.service;
 
+import Bright.BeSafeProject.model.Route;
 import Bright.BeSafeProject.model.StreetLight;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,6 +24,7 @@ public class PublicAPIService {
 
     private Double lightLatitude;
     private Double lightLongitude;
+    private Double lightRadius=0.00018018;
 
     private ExchangeStrategies exchangeStrategies=ExchangeStrategies.builder()
             .codecs(configure->configure.defaultCodecs().maxInMemorySize(-1))
@@ -31,7 +33,7 @@ public class PublicAPIService {
     @Value("${PUBLIC_DATA_KEY}")
     private String public_apiKey;
 
-    public void callSecurityLight(StreetLight streetLight,Double[] range,String address) throws IOException, ParseException {
+    public void callSecurityLight(StreetLight streetLight, Double[] range, String address) throws IOException, ParseException {
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(getSecurityLightJSON(address));
@@ -53,7 +55,7 @@ public class PublicAPIService {
         }
     }
 
-    public void callStreetLamp(StreetLight streetLight,Double[] range){
+    public void callStreetLamp(StreetLight streetLight,Route route){
 
         List<Integer> pages = new ArrayList<>(Arrays.asList(1,2,3,4,5));
 
@@ -64,12 +66,14 @@ public class PublicAPIService {
                 .sequential()
                 .doOnNext(list-> {
                     try {
-                        parseStreetLampAPIResult(streetLight,range,list);
+                        parseStreetLampAPIResult(streetLight,route.getShowRange(),list);
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
                 })
                 .blockLast();
+
+        lightDataFiltering(streetLight,route);
     }
 
     private String getSecurityLightJSON(String address) {
@@ -124,5 +128,40 @@ public class PublicAPIService {
                 streetLight.addLongitude(lightLongitude);
             }
         }
+    }
+
+    private void lightDataFiltering(StreetLight streetLight,Route route){
+        Double[] start,end,list=new Double[4];
+        ArrayList<Double> filteredLatitude=new ArrayList<>();
+        ArrayList<Double> filteredLongitude=new ArrayList<>();
+        for(int i=0;i<=route.getWaypointLatitudes().size();i++){
+            if(i == 0){
+                start = route.getStartLocation();
+                end = new Double[]{route.getWaypointLatitudes().get(i), route.getWaypointLongitudes().get(i)};
+            }else if(i==route.getWaypointLatitudes().size()){
+                start = new Double[]{route.getWaypointLatitudes().get(i-1), route.getWaypointLongitudes().get(i-1)};
+                end = route.getEndLocation();
+            }else{
+                start = new Double[]{route.getWaypointLatitudes().get(i-1), route.getWaypointLongitudes().get(i-1)};
+                end = new Double[]{route.getWaypointLatitudes().get(i), route.getWaypointLongitudes().get(i)};
+            }
+            list[0]=(start[0]>end[0])?start[0]+lightRadius:end[0]+lightRadius;
+            list[1]=(end[0]>start[0])?start[0]-lightRadius:end[0]-lightRadius;
+            list[2]=(start[1]>end[1])?start[1]+lightRadius:end[1]+lightRadius;
+            list[3]=(end[1]>start[1])?start[1]-lightRadius:end[1]-lightRadius;
+            for(int t=0;t<streetLight.getLatitudeList().size();t++){
+                if (streetLight.getLatitudeList().get(t) <= list[0]
+                        && streetLight.getLatitudeList().get(t) >= list[1]
+                        && streetLight.getLongitudeList().get(t) <= list[2]
+                        && streetLight.getLongitudeList().get(t) >= list[3]
+                        && !filteredLatitude.contains(streetLight.getLatitudeList().get(t))
+                        && !filteredLongitude.contains(streetLight.getLongitudeList().get(t))){
+                    filteredLatitude.add(streetLight.getLatitudeList().get(t));
+                    filteredLongitude.add(streetLight.getLongitudeList().get(t));
+                }
+            }
+        }
+        streetLight.setLatitudeList(filteredLatitude);
+        streetLight.setLongitudeList(filteredLongitude);
     }
 }
