@@ -38,3 +38,7 @@ out/
 
 ### API KEY ###
 application.properties
+apiPath.yml
+collectionString.yml
+
+schema.sql
