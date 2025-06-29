@@ -10,7 +10,11 @@
 ## 주요 기능
 
 ### OAuth2 소셜로그인
-|Screen #1|
+|Flow|
+|:---:|
+|<img src="https://github.com/Kan9hee/BeSafe/blob/master/besafe_logIn_flow.png" width="800"/>|
+
+|Screen|
 |:---:|
 |<img src="https://github.com/Kan9hee/BeSafe/blob/master/besafe_login.png" width="800"/>|
 - 사용자 정보
@@ -19,7 +23,15 @@
         - 토큰을 통해 사용자 정보 조회
 
 ### 경로 내 거리등 위치 도출
-|Screen #2|
+|Flow-getData|
+|:---:|
+|<img src="https://github.com/Kan9hee/BeSafe/blob/master/besafe_getData_flow.png" width="800"/>|
+
+|Flow-scheduling|
+|:---:|
+|<img src="https://github.com/Kan9hee/BeSafe/blob/master/besafe_scheduling_flow.png" width="800"/>|
+
+|Screen|
 |:---:|
 |<img src="https://github.com/Kan9hee/BeSafe/blob/master/besafe_service.png" width="800"/>|
 - 거리등 위치 관리
