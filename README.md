@@ -9,7 +9,7 @@
 
 ## 주요 기능
 
-### OAuth2 소셜로그인
+### 회원관리 (로컬/소셜 로그인)
 |Flow|
 |:---:|
 |<img src="https://github.com/Kan9hee/BeSafe/blob/master/besafe_logIn_flow.png" width="800"/>|
