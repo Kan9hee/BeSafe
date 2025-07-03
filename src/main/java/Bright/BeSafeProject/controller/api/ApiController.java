@@ -6,6 +6,7 @@ import Bright.BeSafeProject.dto.apiRequest.TmapRouteRequestDTO;
 import Bright.BeSafeProject.service.*;
 import Bright.BeSafeProject.vo.AccountRoleEnum;
 import Bright.BeSafeProject.vo.PlatformEnum;
+import Bright.BeSafeProject.vo.ResponseMessageEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -37,12 +38,7 @@ public class ApiController {
                     signInDTO.emailAndPassword().insertedPassword(),
                     AccountRoleEnum.ROLE_USER.name()
                 )
-                .thenReturn(ResponseEntity.ok("가입 성공"))
-                .onErrorResume(IllegalArgumentException.class, e ->
-                        Mono.just(ResponseEntity
-                                .badRequest()
-                                .body(e.getMessage()))
-                );
+                .thenReturn(ResponseEntity.ok(ResponseMessageEnum.JOIN_SUCCESS.toString()));
     }
 
     @PostMapping("/logIn")
@@ -54,14 +50,9 @@ public class ApiController {
                     return Mono.fromSupplier(() -> ResponseEntity.ok()
                             .header(HttpHeaders.SET_COOKIE, jwtDTO.accessTokenCookie().toString())
                             .header(HttpHeaders.SET_COOKIE, jwtDTO.refreshTokenCookie().toString())
-                            .body("로그인 성공")
+                            .body(ResponseMessageEnum.LOGIN_SUCCESS.toString())
                     );
-                })
-                .onErrorResume(IllegalArgumentException.class, e ->
-                        Mono.just(ResponseEntity
-                                .badRequest()
-                                .body(e.getMessage()))
-                );
+                });
     }
 
     @PostMapping("/logOut")
@@ -80,7 +71,7 @@ public class ApiController {
                 .map(jwtDTO -> ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, jwtDTO.accessTokenCookie().toString())
                         .header(HttpHeaders.SET_COOKIE, jwtDTO.refreshTokenCookie().toString())
-                        .body("로그아웃 완료")
+                        .body(ResponseMessageEnum.LOGOUT_SUCCESS.toString())
                 );
     }
 
@@ -101,7 +92,7 @@ public class ApiController {
                 .map(jwtDTO -> ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, jwtDTO.accessTokenCookie().toString())
                         .header(HttpHeaders.SET_COOKIE, jwtDTO.refreshTokenCookie().toString())
-                        .body("회원 탈퇴 완료")
+                        .body(ResponseMessageEnum.WITHDRAW_ACCOUNT_SUCCESS.toString())
                 );
     }
 
