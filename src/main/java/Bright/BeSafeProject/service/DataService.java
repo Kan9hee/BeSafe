@@ -8,9 +8,12 @@ import Bright.BeSafeProject.dto.LocationDTO;
 import Bright.BeSafeProject.dto.ProfileDTO;
 import Bright.BeSafeProject.entity.History;
 import Bright.BeSafeProject.entity.LightNode;
+import Bright.BeSafeProject.exception.CustomException;
+import Bright.BeSafeProject.exception.ErrorCode;
 import Bright.BeSafeProject.mapper.LightNodeMapper;
 import Bright.BeSafeProject.repository.AccountRepository;
 import Bright.BeSafeProject.repository.HistoryRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.geo.Point;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.*;
@@ -29,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataService {
@@ -41,13 +45,19 @@ public class DataService {
     public Mono<Void> saveLightNodeData(String collection,
                                         List<LocationDTO> lightNodeList){
         LightNodeMapper mapper = LightNodeMapper.INSTANCE;
+
         List<List<LocationDTO>> batches = new ArrayList<>();
         for(int i=0;i<lightNodeList.size();i+=constantNumberConfig.getPageSize()){
             int end = Math.min(i+constantNumberConfig.getPageSize(),lightNodeList.size());
             batches.add(lightNodeList.subList(i,end));
         }
+
         return reactiveMongoTemplate
                 .remove(new Query(), LightNode.class, collection)
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new CustomException(ErrorCode.LIGHT_COLLECTION_UPDATE_FAILED));
+                })
                 .thenMany(
                         Flux.fromIterable(batches)
                                 .flatMap(batch ->
@@ -55,7 +65,13 @@ public class DataService {
                                                         .map(mapper::toEntity)
                                                         .collectList()
                                                         .flatMap(list ->
-                                                                reactiveMongoTemplate.insert(list,collection).then()
+                                                                reactiveMongoTemplate.insert(list,collection)
+                                                                        .doOnError(e -> log.info(e.getMessage()))
+                                                                        .onErrorResume(e -> {
+                                                                            log.error(e.getMessage());
+                                                                            return Mono.error(new CustomException(ErrorCode.LIGHT_COLLECTION_UPDATE_FAILED));
+                                                                        })
+                                                                        .then()
                                                         ), constantNumberConfig.getConcurrency())
                                 .then()
                 )
@@ -84,6 +100,10 @@ public class DataService {
         Query query = new Query(criteria);
 
         return reactiveMongoTemplate.find(query, LightNode.class, mongoCollectionComponent.getActiveCollection())
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new CustomException(ErrorCode.LIGHT_COLLECTION_SEARCH_FAILED));
+                })
                 .map(LightNodeMapper.INSTANCE::toDto)
                 .collectList();
     }
@@ -101,7 +121,13 @@ public class DataService {
                 .usedAt(LocalDateTime.now())
                 .accountId(accountId)
                 .build();
-        return historyRepository.save(currentUsage).then();
+
+        return historyRepository.save(currentUsage)
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new CustomException(ErrorCode.USAGE_HISTORY_SAVE_FAILED));
+                })
+                .then();
     }
 
     public Mono<List<HistoryDTO>> getUsageList(Long accountId,
@@ -109,6 +135,10 @@ public class DataService {
                                                int size){
         int offset = page*size;
         return historyRepository.getRecentHistory(accountId,size,offset)
+                .onErrorResume(e -> {
+                    log.error(e.getMessage());
+                    return Mono.error(new CustomException(ErrorCode.USAGE_HISTORY_CALL_FAILED));
+                })
                 .map(history -> new HistoryDTO(
                         history.getStartX(),
                         history.getStartY(),

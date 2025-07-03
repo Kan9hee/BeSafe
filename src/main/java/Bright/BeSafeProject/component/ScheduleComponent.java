@@ -3,9 +3,12 @@ package Bright.BeSafeProject.component;
 import Bright.BeSafeProject.config.ConstantNumberConfig;
 import Bright.BeSafeProject.dto.LocationDTO;
 import Bright.BeSafeProject.dto.apiResponse.StreetResponseDTO;
+import Bright.BeSafeProject.exception.CustomException;
+import Bright.BeSafeProject.exception.ErrorCode;
 import Bright.BeSafeProject.service.DataService;
 import Bright.BeSafeProject.service.ExternalApiService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ScheduleComponent {
@@ -41,8 +45,7 @@ public class ScheduleComponent {
 
     public Mono<Void> updateAndSwapLightNodeDB(){
         return reloadAllLightNodeData()
-                .flatMap(data ->
-                        dataService.saveLightNodeData(mongoCollectionComponent.getPassiveCollection(),data))
+                .flatMap(data -> dataService.saveLightNodeData(mongoCollectionComponent.getPassiveCollection(),data))
                 .doOnSuccess(next -> mongoCollectionComponent.swapActiveCollection())
                 .then();
     }
@@ -50,12 +53,17 @@ public class ScheduleComponent {
     private Mono<List<LocationDTO>> reloadAllLightNodeData(){
         return externalApiService.callStreetLightData(constantNumberConfig.getFirstPage(),constantNumberConfig.getPageSize())
                 .flatMap(firstResponse -> {
+                    if(firstResponse == null || firstResponse.totalCount() == 0) {
+                        log.error(ErrorCode.API_RESULT_IS_EMPTY.getErrorMessage());
+                        return Mono.error(new CustomException(ErrorCode.API_RESULT_IS_EMPTY));
+                    }
+
                     List<LocationDTO> firstPageData = extractLocationDTOs(firstResponse);
-                    int totalPage = firstResponse.totalCount()/constantNumberConfig.getPageSize()
-                            +(firstResponse.totalCount()%constantNumberConfig.getPageSize() > 0
-                            ?constantNumberConfig.getFirstPage()
-                            :0);
-                    if(totalPage<=constantNumberConfig.getFirstPage())
+                    int totalPage = firstResponse.totalCount() / constantNumberConfig.getPageSize()
+                            + (firstResponse.totalCount() % constantNumberConfig.getPageSize() > 0
+                            ? constantNumberConfig.getFirstPage()
+                            : 0);
+                    if(totalPage <= constantNumberConfig.getFirstPage())
                         return Mono.just(firstPageData);
 
                     List<Integer> remainingPages = IntStream.rangeClosed(constantNumberConfig.getParallelStartPage(),totalPage).boxed().toList();

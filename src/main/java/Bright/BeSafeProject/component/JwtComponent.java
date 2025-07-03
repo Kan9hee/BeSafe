@@ -2,15 +2,17 @@ package Bright.BeSafeProject.component;
 
 import Bright.BeSafeProject.config.JwtConfig;
 import Bright.BeSafeProject.dto.JwtDTO;
+import Bright.BeSafeProject.exception.CustomException;
+import Bright.BeSafeProject.exception.ErrorCode;
 import Bright.BeSafeProject.service.CustomUserDetailsService;
 import Bright.BeSafeProject.service.TokenManageService;
 import Bright.BeSafeProject.vo.SecuredPathEnum;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpCookie;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -19,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -31,6 +32,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtComponent implements WebFilter {
@@ -59,14 +61,17 @@ public class JwtComponent implements WebFilter {
                 .map(HttpCookie::getValue)
                 .orElse(null);
 
-        if(accessToken == null || refreshToken == null)
-            return Mono.error(new RuntimeException("토큰 없음"));
+        if(accessToken == null || refreshToken == null) {
+            log.error(ErrorCode.TOKEN_NOT_FOUND.getErrorMessage());
+            return Mono.error(new CustomException(ErrorCode.TOKEN_NOT_FOUND));
+        }
 
         String email;
         try {
             email = getEmailFromAccessToken(accessToken);
         } catch (Exception e) {
-            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "토큰 파싱 실패"));
+            log.error(ErrorCode.EMAIL_INFO_MISSING_TOKEN.getErrorMessage());
+            return Mono.error(new CustomException(ErrorCode.EMAIL_INFO_MISSING_TOKEN));
         }
 
         Mono<String> accessTokenMono = isExpired(accessToken)
@@ -76,10 +81,15 @@ public class JwtComponent implements WebFilter {
         return accessTokenMono
                 .flatMap(token -> tokenManageService.checkTokenBlacklisted(token)
                         .flatMap(isBlacklisted -> {
-                            if(isBlacklisted)
-                                return Mono.error(new RuntimeException("만료된 토큰"));
+                            if(isBlacklisted) {
+                                log.error(ErrorCode.EXPIRED_TOKEN.getErrorMessage());
+                                return Mono.error(new CustomException(ErrorCode.EXPIRED_TOKEN));
+                            }
                             return customUserDetailsService.findByUsername(email)
-                                    .switchIfEmpty(Mono.error(new RuntimeException("사용자 없음")))
+                                    .switchIfEmpty(Mono.defer(() -> {
+                                        log.error(ErrorCode.ACCOUNT_NOT_FOUND.getErrorMessage());
+                                        return Mono.error(new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+                                    }))
                                     .flatMap(userDetails -> {
                                         Authentication authentication = new UsernamePasswordAuthenticationToken(
                                                 userDetails,null,userDetails.getAuthorities());
@@ -129,8 +139,10 @@ public class JwtComponent implements WebFilter {
                                            String userEmail) {
         return tokenManageService.checkTokenBlacklisted(refreshToken)
                 .flatMap(isBlacklisted -> {
-                    if(isBlacklisted || isExpired(refreshToken))
-                        return Mono.error(new RuntimeException("잘못된 토큰"));
+                    if(isBlacklisted || isExpired(refreshToken)) {
+                        log.error(ErrorCode.EXPIRED_TOKEN.getErrorMessage());
+                        return Mono.error(new CustomException(ErrorCode.EXPIRED_TOKEN));
+                    }
                     return null;
                 })
                 .then( customUserDetailsService.findByUsername(userEmail)

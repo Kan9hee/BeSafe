@@ -7,17 +7,24 @@ import Bright.BeSafeProject.dto.LocationDTO;
 import Bright.BeSafeProject.dto.apiRequest.TmapRouteRequestDTO;
 import Bright.BeSafeProject.dto.apiResponse.*;
 import Bright.BeSafeProject.dto.apiResponse.StreetResponseDTO;
+import Bright.BeSafeProject.exception.CustomException;
+import Bright.BeSafeProject.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExternalApiService {
@@ -38,6 +45,8 @@ public class ExternalApiService {
                         .queryParam(apiParamConfig.getStreetLightApiCall().getKey(),apiStringConfig.getOpenData().getAuthenticationKey())
                         .build())
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, handle4xxError())
+                .onStatus(HttpStatusCode::is5xxServerError, handle5xxError())
                 .bodyToMono(StreetResponseDTO.class);
     }
 
@@ -48,7 +57,10 @@ public class ExternalApiService {
                 .headers(httpHeaders -> {
                     httpHeaders.setBearerAuth(accessToken);
                     httpHeaders.setContentType(MediaType.valueOf(MediaType.APPLICATION_FORM_URLENCODED_VALUE));
-                }).retrieve()
+                })
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, handle4xxError())
+                .onStatus(HttpStatusCode::is5xxServerError, handle5xxError())
                 .bodyToMono(KakaoUserResponseDTO.class);
     }
 
@@ -69,10 +81,7 @@ public class ExternalApiService {
                 .header(HttpHeaders.AUTHORIZATION, headerValueBuilder(accessToken))
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
-                    Object idObj = response.get("id");
-                    return ((Number) idObj).longValue();
-                });
+                .map(response -> ((Number) response.get("id")).longValue());
     }
 
     public Mono<GoogleUserResponseDTO> callGoogleUserInfo(String accessToken){
@@ -80,6 +89,8 @@ public class ExternalApiService {
                 .get()
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken))
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, handle4xxError())
+                .onStatus(HttpStatusCode::is5xxServerError, handle5xxError())
                 .bodyToMono(GoogleUserResponseDTO.class);
     }
 
@@ -91,6 +102,8 @@ public class ExternalApiService {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, handle4xxError())
+                .onStatus(HttpStatusCode::is5xxServerError, handle5xxError())
                 .bodyToMono(TmapRouteResponseDTO.class)
                 .map(response -> response.features()
                         .stream()
@@ -118,6 +131,22 @@ public class ExternalApiService {
                         })
                         .toList()
                 );
+    }
+
+    private Function<ClientResponse,Mono<? extends Throwable>> handle4xxError(){
+        return response -> response.bodyToMono(String.class)
+                        .flatMap(errorBody -> {
+                            log.error(errorBody);
+                            return Mono.error(new CustomException(ErrorCode.INTERNAL_API_VALUE_ERROR));
+                        });
+    }
+
+    private Function<ClientResponse,Mono<? extends Throwable>> handle5xxError(){
+        return response -> response.bodyToMono(String.class)
+                .flatMap(errorBody -> {
+                    log.error(errorBody);
+                    return Mono.error(new CustomException(ErrorCode.INTERNAL_API_SERVER_ERROR));
+                });
     }
 
     private String headerValueBuilder(String accessToken) { return String.join(authValueConfig.getHeader(),accessToken); }

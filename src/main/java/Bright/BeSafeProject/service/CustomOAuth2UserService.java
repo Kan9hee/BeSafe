@@ -1,9 +1,12 @@
 package Bright.BeSafeProject.service;
 
 import Bright.BeSafeProject.config.AuthorizationValueConfig;
+import Bright.BeSafeProject.exception.CustomException;
+import Bright.BeSafeProject.exception.ErrorCode;
 import Bright.BeSafeProject.vo.AccountRoleEnum;
 import Bright.BeSafeProject.vo.PlatformEnum;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
@@ -16,6 +19,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService implements ReactiveOAuth2UserService<OAuth2UserRequest,OAuth2User> {
@@ -54,6 +58,7 @@ public class CustomOAuth2UserService implements ReactiveOAuth2UserService<OAuth2
                     ));
         }
 
-        return Mono.error(new IllegalArgumentException("지원하지 않는 플랫폼입니다."));
+        log.error(ErrorCode.NOT_SUPPORTED_PLATFORM.getErrorMessage());
+        return Mono.error(new CustomException(ErrorCode.NOT_SUPPORTED_PLATFORM));
     }
 }
