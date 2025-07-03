@@ -1,6 +1,8 @@
 package Bright.BeSafeProject.service;
 
 import Bright.BeSafeProject.component.MongoCollectionComponent;
+import Bright.BeSafeProject.config.ApiParamConfig;
+import Bright.BeSafeProject.config.ConstantNumberConfig;
 import Bright.BeSafeProject.dto.HistoryDTO;
 import Bright.BeSafeProject.dto.LocationDTO;
 import Bright.BeSafeProject.dto.ProfileDTO;
@@ -30,8 +32,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DataService {
+    private final ApiParamConfig apiParamConfig;
+    private final ConstantNumberConfig constantNumberConfig;
     private final MongoCollectionComponent mongoCollectionComponent;
-    private final AccountRepository accountRepository;
     private final HistoryRepository historyRepository;
     private final ReactiveMongoTemplate reactiveMongoTemplate;
 
@@ -39,8 +42,8 @@ public class DataService {
                                         List<LocationDTO> lightNodeList){
         LightNodeMapper mapper = LightNodeMapper.INSTANCE;
         List<List<LocationDTO>> batches = new ArrayList<>();
-        for(int i=0;i<lightNodeList.size();i+=5000){
-            int end = Math.min(i+5000,lightNodeList.size());
+        for(int i=0;i<lightNodeList.size();i+=constantNumberConfig.getPageSize()){
+            int end = Math.min(i+constantNumberConfig.getPageSize(),lightNodeList.size());
             batches.add(lightNodeList.subList(i,end));
         }
         return reactiveMongoTemplate
@@ -53,7 +56,7 @@ public class DataService {
                                                         .collectList()
                                                         .flatMap(list ->
                                                                 reactiveMongoTemplate.insert(list,collection).then()
-                                                        ), 4)
+                                                        ), constantNumberConfig.getConcurrency())
                                 .then()
                 )
                 .then();
@@ -67,7 +70,7 @@ public class DataService {
                 .toArray(Coordinate[]::new);
         LineString lineString = geometryFactory.createLineString(coordinates);
 
-        double bufferDistance = 10.0/111320.0;
+        double bufferDistance = constantNumberConfig.getRadius()/constantNumberConfig.getMetersPerDegree();
         Polygon bufferPolygon = (Polygon) BufferOp.bufferOp(lineString,bufferDistance);
 
         List<Point> points = Arrays.stream(bufferPolygon.getCoordinates())
@@ -77,7 +80,7 @@ public class DataService {
             points.add(points.get(0));
 
         GeoJsonPolygon geoJsonPolygon = new GeoJsonPolygon(points);
-        Criteria criteria = Criteria.where("location").within(geoJsonPolygon);
+        Criteria criteria = Criteria.where(apiParamConfig.getLightNodeLocation()).within(geoJsonPolygon);
         Query query = new Query(criteria);
 
         return reactiveMongoTemplate.find(query, LightNode.class, mongoCollectionComponent.getActiveCollection())

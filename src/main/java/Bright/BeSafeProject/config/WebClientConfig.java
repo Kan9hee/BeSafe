@@ -1,5 +1,6 @@
 package Bright.BeSafeProject.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,9 +8,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebClientConfig {
-    @Autowired
-    private ApiStringConfig apiStringConfig;
+    private final ApiStringConfig apiStringConfig;
+    private final ConstantNumberConfig constantNumberConfig;
 
     @Bean
     public WebClient streetLightApiWebClient(){
@@ -21,7 +23,7 @@ public class WebClientConfig {
         return WebClient.builder()
                 .uriBuilderFactory(factory)
                 .baseUrl(apiStringConfig.getOpenData().getStreetLightsUrl())
-                .codecs(config -> config.defaultCodecs().maxInMemorySize(5*1024*1024))
+                .codecs(config -> config.defaultCodecs().maxInMemorySize(constantNumberConfig.getCodecSize()))
                 .build();
     }
 

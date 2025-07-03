@@ -1,5 +1,6 @@
 package Bright.BeSafeProject.component;
 
+import Bright.BeSafeProject.config.ConstantNumberConfig;
 import Bright.BeSafeProject.dto.LocationDTO;
 import Bright.BeSafeProject.dto.apiResponse.StreetResponseDTO;
 import Bright.BeSafeProject.service.DataService;
@@ -23,6 +24,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class ScheduleComponent {
     private static final Logger logger = LoggerFactory.getLogger(ScheduleComponent.class);
+    private final ConstantNumberConfig constantNumberConfig;
     private final DataService dataService;
     private final ExternalApiService externalApiService;
     private final MongoCollectionComponent mongoCollectionComponent;
@@ -46,19 +48,21 @@ public class ScheduleComponent {
     }
 
     private Mono<List<LocationDTO>> reloadAllLightNodeData(){
-        return externalApiService.callStreetLightData(1,5000)
+        return externalApiService.callStreetLightData(constantNumberConfig.getFirstPage(),constantNumberConfig.getPageSize())
                 .flatMap(firstResponse -> {
                     List<LocationDTO> firstPageData = extractLocationDTOs(firstResponse);
-                    int totalPage = firstResponse.totalCount()/5000
-                            +(firstResponse.totalCount()%5000>0?1:0);
-                    if(totalPage<=1)
+                    int totalPage = firstResponse.totalCount()/constantNumberConfig.getPageSize()
+                            +(firstResponse.totalCount()%constantNumberConfig.getPageSize() > 0
+                            ?constantNumberConfig.getFirstPage()
+                            :0);
+                    if(totalPage<=constantNumberConfig.getFirstPage())
                         return Mono.just(firstPageData);
 
-                    List<Integer> remainingPages = IntStream.rangeClosed(2,totalPage).boxed().toList();
+                    List<Integer> remainingPages = IntStream.rangeClosed(constantNumberConfig.getParallelStartPage(),totalPage).boxed().toList();
                     return Flux.fromIterable(remainingPages)
                             .parallel()
                             .runOn(Schedulers.parallel())
-                            .flatMap(page -> externalApiService.callStreetLightData(page,5000))
+                            .flatMap(page -> externalApiService.callStreetLightData(page,constantNumberConfig.getPageSize()))
                             .map(this::extractLocationDTOs)
                             .sequential()
                             .flatMapIterable(list -> list)

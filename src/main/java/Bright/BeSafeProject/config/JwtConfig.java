@@ -13,8 +13,18 @@ import java.util.Base64;
 @ConfigurationProperties(prefix = "jwt")
 @Getter
 @Setter
-public class JwtSecretConfig {
+public class JwtConfig {
     private String secret;
+    private String accessTokenName;
+    private String refreshTokenName;
+    private String path;
+    private String cookieSameSite;
+    private String delimiter;
+    private Long accessTokenExpiration;
+    private Long accessTokenCookieExpirationMinutes;
+    private Long refreshTokenExpiration;
+    private Long refreshTokenCookieExpirationDays;
+    private Long discardTime;
 
     public SecretKey getSecret(){
         byte[] decodedKey = Base64.getDecoder().decode(secret);

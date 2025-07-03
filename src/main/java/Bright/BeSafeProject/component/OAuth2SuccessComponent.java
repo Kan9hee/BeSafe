@@ -1,5 +1,6 @@
 package Bright.BeSafeProject.component;
 
+import Bright.BeSafeProject.config.AuthorizationValueConfig;
 import Bright.BeSafeProject.dto.JwtDTO;
 import Bright.BeSafeProject.service.AccountService;
 import Bright.BeSafeProject.vo.AccountRoleEnum;
@@ -25,6 +26,7 @@ import static j2html.TagCreator.*;
 @Component(value = "authenticationSuccessHandler")
 @RequiredArgsConstructor
 public class OAuth2SuccessComponent implements ServerAuthenticationSuccessHandler {
+    private final AuthorizationValueConfig authValueConfig;
     private final JwtComponent jwtComponent;
     private final AccountService accountService;
 
@@ -32,9 +34,12 @@ public class OAuth2SuccessComponent implements ServerAuthenticationSuccessHandle
     public Mono<Void> onAuthenticationSuccess(WebFilterExchange webFilterExchange,
                                               Authentication authentication) {
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-        String platform = (String) oauth2User.getAttributes().get("platform");
-        String name = (String) oauth2User.getAttributes().get("name");
-        String email = (String) oauth2User.getAttributes().get("email");
+        String platform = (String) oauth2User.getAttributes()
+                .get(authValueConfig.getOauth2().getDefaultOAuth2User().getPlatform());
+        String name = (String) oauth2User.getAttributes()
+                .get(authValueConfig.getOauth2().getDefaultOAuth2User().getName());
+        String email = (String) oauth2User.getAttributes()
+                .get(authValueConfig.getOauth2().getDefaultOAuth2User().getEmail());
 
         return accountService.isExistsAccount(email)
                 .flatMap(exist -> {
@@ -53,7 +58,7 @@ public class OAuth2SuccessComponent implements ServerAuthenticationSuccessHandle
                     return process.then(Mono.defer(() ->{
                         ServerHttpResponse response = webFilterExchange.getExchange().getResponse();
 
-                        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+                        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(AccountRoleEnum.ROLE_USER.name()));
                         Authentication newAuth = new UsernamePasswordAuthenticationToken(email, null, authorities);
                         JwtDTO jwt = jwtComponent.generateToken(newAuth);
 
@@ -63,7 +68,7 @@ public class OAuth2SuccessComponent implements ServerAuthenticationSuccessHandle
                         response.getHeaders().setContentType(MediaType.TEXT_HTML);
                         String html = html(
                                 body(
-                                        script(rawHtml("window.close();"))
+                                        script(rawHtml(authValueConfig.getOauth2().getPopupClose()))
                                 )
                         ).render();
 

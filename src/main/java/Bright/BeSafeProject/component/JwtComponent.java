@@ -1,6 +1,6 @@
 package Bright.BeSafeProject.component;
 
-import Bright.BeSafeProject.config.JwtSecretConfig;
+import Bright.BeSafeProject.config.JwtConfig;
 import Bright.BeSafeProject.dto.JwtDTO;
 import Bright.BeSafeProject.service.CustomUserDetailsService;
 import Bright.BeSafeProject.service.TokenManageService;
@@ -10,7 +10,6 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpCookie;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.server.RequestPath;
@@ -35,7 +34,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class JwtComponent implements WebFilter {
-    private final JwtSecretConfig jwtSecretConfig;
+    private final JwtConfig jwtConfig;
     private final TokenManageService tokenManageService;
     private final CustomUserDetailsService customUserDetailsService;
     private final PathPatternParser pathParser;
@@ -53,10 +52,10 @@ public class JwtComponent implements WebFilter {
         if(!isSecured)
             return chain.filter(exchange);
 
-        String accessToken = Optional.ofNullable(exchange.getRequest().getCookies().getFirst("access_token"))
+        String accessToken = Optional.ofNullable(exchange.getRequest().getCookies().getFirst(jwtConfig.getAccessTokenName()))
                 .map(HttpCookie::getValue)
                 .orElse(null);
-        String refreshToken = Optional.ofNullable(exchange.getRequest().getCookies().getFirst("refresh_token"))
+        String refreshToken = Optional.ofNullable(exchange.getRequest().getCookies().getFirst(jwtConfig.getRefreshTokenName()))
                 .map(HttpCookie::getValue)
                 .orElse(null);
 
@@ -97,29 +96,29 @@ public class JwtComponent implements WebFilter {
         String accessToken = Jwts.builder()
                 .subject(authentication.getName())
                 .issuedAt(now)
-                .expiration(new Date(now.getTime()+600_000))
-                .signWith(jwtSecretConfig.getSecret())
+                .expiration(new Date(now.getTime()+jwtConfig.getAccessTokenExpiration()))
+                .signWith(jwtConfig.getSecret())
                 .compact();
 
         String refreshToken = Jwts.builder()
-                .expiration(new Date(now.getTime()+604_800_000))
-                .signWith(jwtSecretConfig.getSecret())
+                .expiration(new Date(now.getTime()+jwtConfig.getRefreshTokenExpiration()))
+                .signWith(jwtConfig.getSecret())
                 .compact();
 
-        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", accessToken)
+        ResponseCookie accessTokenCookie = ResponseCookie.from(jwtConfig.getAccessTokenName(), accessToken)
                 .httpOnly(true)
                 .secure(false)
-                .path("/besafe")
-                .sameSite("Lax")
-                .maxAge(Duration.ofMinutes(10))
+                .path(jwtConfig.getPath())
+                .sameSite(jwtConfig.getCookieSameSite())
+                .maxAge(Duration.ofMinutes(jwtConfig.getAccessTokenCookieExpirationMinutes()))
                 .build();
 
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+        ResponseCookie refreshTokenCookie = ResponseCookie.from(jwtConfig.getRefreshTokenName(), refreshToken)
                 .httpOnly(true)
                 .secure(false)
-                .path("/besafe")
-                .sameSite("Lax")
-                .maxAge(Duration.ofDays(7))
+                .path(jwtConfig.getPath())
+                .sameSite(jwtConfig.getCookieSameSite())
+                .maxAge(Duration.ofDays(jwtConfig.getRefreshTokenCookieExpirationDays()))
                 .build();
 
         return new JwtDTO(accessToken, refreshToken, accessTokenCookie, refreshTokenCookie);
@@ -161,20 +160,20 @@ public class JwtComponent implements WebFilter {
                             .then(tokenManageService.removeRefreshToken(accountEmail));
                 }))
                 .then(Mono.defer(() -> {
-                    ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access_token", accessToken)
+                    ResponseCookie deleteAccessTokenCookie = ResponseCookie.from(jwtConfig.getAccessTokenName(), accessToken)
                             .httpOnly(true)
                             .secure(false)
-                            .path("/besafe")
-                            .sameSite("Lax")
-                            .maxAge(Duration.ofMinutes(10))
+                            .path(jwtConfig.getPath())
+                            .sameSite(jwtConfig.getCookieSameSite())
+                            .maxAge(Duration.ofSeconds(jwtConfig.getDiscardTime()))
                             .build();
 
-                    ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+                    ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from(jwtConfig.getRefreshTokenName(), refreshToken)
                             .httpOnly(true)
                             .secure(false)
-                            .path("/besafe")
-                            .sameSite("Lax")
-                            .maxAge(Duration.ofDays(7))
+                            .path(jwtConfig.getPath())
+                            .sameSite(jwtConfig.getCookieSameSite())
+                            .maxAge(Duration.ofSeconds(jwtConfig.getDiscardTime()))
                             .build();
 
                     return Mono.just(new JwtDTO(
@@ -187,7 +186,7 @@ public class JwtComponent implements WebFilter {
 
     public boolean isExpired(String tokenString){
         Claims claims = Jwts.parser()
-                .verifyWith(jwtSecretConfig.getSecret())
+                .verifyWith(jwtConfig.getSecret())
                 .build()
                 .parseSignedClaims(tokenString)
                 .getPayload();
@@ -198,15 +197,15 @@ public class JwtComponent implements WebFilter {
 
     public JwtDTO extractAccessTokenCookie(ServerHttpRequest request) {
         MultiValueMap<String, HttpCookie> cookies = request.getCookies();
-        String accessTokenString = Objects.requireNonNull(cookies.getFirst("access_token")).getValue();
-        String refreshTokenString = Objects.requireNonNull(cookies.getFirst("refresh_token")).getValue();
+        String accessTokenString = Objects.requireNonNull(cookies.getFirst(jwtConfig.getAccessTokenName())).getValue();
+        String refreshTokenString = Objects.requireNonNull(cookies.getFirst(jwtConfig.getRefreshTokenName())).getValue();
 
         return new JwtDTO(accessTokenString,refreshTokenString,null,null);
     }
 
     public String getEmailFromAccessToken(String accessToken){
         return Jwts.parser()
-                .verifyWith(jwtSecretConfig.getSecret())
+                .verifyWith(jwtConfig.getSecret())
                 .build()
                 .parseSignedClaims(accessToken)
                 .getPayload()

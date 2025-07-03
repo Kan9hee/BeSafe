@@ -1,5 +1,6 @@
 package Bright.BeSafeProject.service;
 
+import Bright.BeSafeProject.config.JwtConfig;
 import Bright.BeSafeProject.vo.RedisPrefixEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
@@ -11,12 +12,13 @@ import java.time.Duration;
 @Service
 @RequiredArgsConstructor
 public class TokenManageService {
+    private final JwtConfig jwtConfig;
     private final ReactiveStringRedisTemplate redisTemplate;
 
     public Mono<Void> saveRefreshToken(String refreshToken, String accountEmail){
         String redisKey = createKey(RedisPrefixEnum.REFRESH,accountEmail);
         return redisTemplate.opsForValue()
-                .set(redisKey,refreshToken, Duration.ofDays(7))
+                .set(redisKey,refreshToken, Duration.ofDays(jwtConfig.getRefreshTokenCookieExpirationDays()))
                 .then();
     }
 
@@ -36,7 +38,7 @@ public class TokenManageService {
     public Mono<Void> saveBlacklistToken(String tokenString){
         String redisKey = createKey(RedisPrefixEnum.BLACKLIST,tokenString);
         return redisTemplate.opsForValue()
-                .set(redisKey, String.valueOf(System.currentTimeMillis()), Duration.ofDays(1))
+                .set(redisKey, String.valueOf(System.currentTimeMillis()), Duration.ofDays(jwtConfig.getRefreshTokenCookieExpirationDays()))
                 .then();
     }
 
@@ -46,6 +48,6 @@ public class TokenManageService {
     }
 
     private String createKey(RedisPrefixEnum prefix, String tokenValue) {
-        return String.join(":", prefix.getPrefix(), tokenValue);
+        return String.join(jwtConfig.getDelimiter(), prefix.getPrefix(), tokenValue);
     }
 }

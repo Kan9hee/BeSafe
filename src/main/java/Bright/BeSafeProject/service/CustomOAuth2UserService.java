@@ -1,5 +1,6 @@
 package Bright.BeSafeProject.service;
 
+import Bright.BeSafeProject.config.AuthorizationValueConfig;
 import Bright.BeSafeProject.vo.AccountRoleEnum;
 import Bright.BeSafeProject.vo.PlatformEnum;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService implements ReactiveOAuth2UserService<OAuth2UserRequest,OAuth2User> {
+    private final AuthorizationValueConfig authValueConfig;
     private final ExternalApiService externalApiService;
 
     @Override
@@ -25,30 +27,30 @@ public class CustomOAuth2UserService implements ReactiveOAuth2UserService<OAuth2
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         String accessToken = userRequest.getAccessToken().getTokenValue();
 
-        if(registrationId.equals("google")){
+        if(registrationId.equals(PlatformEnum.GOOGLE.name().toLowerCase())){
             return externalApiService.callGoogleUserInfo(accessToken)
                     .map(user -> new DefaultOAuth2User(
                             List.of(new SimpleGrantedAuthority(AccountRoleEnum.ROLE_USER.name())),
                             Map.of(
-                                    "id",user.sub(),
-                                    "name",user.name(),
-                                    "email",user.email(),
-                                    "platform", PlatformEnum.GOOGLE.name()
+                                    authValueConfig.getOauth2().getDefaultOAuth2User().getId(),user.sub(),
+                                    authValueConfig.getOauth2().getDefaultOAuth2User().getName(),user.name(),
+                                    authValueConfig.getOauth2().getDefaultOAuth2User().getEmail(),user.email(),
+                                    authValueConfig.getOauth2().getDefaultOAuth2User().getPlatform(), PlatformEnum.GOOGLE.name()
                             ),
-                            "id"
+                            authValueConfig.getOauth2().getDefaultOAuth2User().getId()
                     ));
         }
-        else if(registrationId.equals("kakao")){
+        else if(registrationId.equals(PlatformEnum.KAKAO.name().toLowerCase())){
             return externalApiService.callKakaoUserInfo(accessToken)
                     .map(user -> new DefaultOAuth2User(
                             List.of(new SimpleGrantedAuthority(AccountRoleEnum.ROLE_USER.name())),
                             Map.of(
-                                    "id",user.id(),
-                                    "name",user.kakaoAccount().profile().nickname(),
-                                    "email",user.kakaoAccount().email(),
-                                    "platform", PlatformEnum.KAKAO.name()
+                                    authValueConfig.getOauth2().getDefaultOAuth2User().getId(),user.id(),
+                                    authValueConfig.getOauth2().getDefaultOAuth2User().getName(),user.kakaoAccount().profile().nickname(),
+                                    authValueConfig.getOauth2().getDefaultOAuth2User().getEmail(),user.kakaoAccount().email(),
+                                    authValueConfig.getOauth2().getDefaultOAuth2User().getPlatform(), PlatformEnum.KAKAO.name()
                             ),
-                            "id"
+                            authValueConfig.getOauth2().getDefaultOAuth2User().getId()
                     ));
         }
 

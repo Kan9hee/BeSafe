@@ -40,5 +40,8 @@ out/
 application.properties
 apiPath.yml
 collectionString.yml
+constantNumber.yml
+paramString.yml
+securityValue.yml
 
 schema.sql
