@@ -66,37 +66,36 @@ public class JwtComponent implements WebFilter {
             return Mono.error(new CustomException(ErrorCode.TOKEN_NOT_FOUND));
         }
 
-        String email;
-        try {
-            email = getEmailFromAccessToken(accessToken);
-        } catch (Exception e) {
-            log.error(ErrorCode.EMAIL_INFO_MISSING_TOKEN.getErrorMessage());
-            return Mono.error(new CustomException(ErrorCode.EMAIL_INFO_MISSING_TOKEN));
-        }
+        return Mono.fromCallable(() -> getEmailFromAccessToken(accessToken))
+                .onErrorResume(e -> {
+                    log.error(ErrorCode.EMAIL_INFO_MISSING_TOKEN.getErrorMessage());
+                    return Mono.error(new CustomException(ErrorCode.EMAIL_INFO_MISSING_TOKEN));
+                })
+                .flatMap(email -> {
+                    Mono<String> accessTokenMono = isExpired(accessToken)
+                            ? reissueAccessToken(accessToken, refreshToken, email).map(JwtDTO::accessTokenString)
+                            : Mono.just(accessToken);
 
-        Mono<String> accessTokenMono = isExpired(accessToken)
-                ? reissueAccessToken(accessToken, refreshToken, email).map(JwtDTO::accessTokenString)
-                : Mono.just(accessToken);
-
-        return accessTokenMono
-                .flatMap(token -> tokenManageService.checkTokenBlacklisted(token)
-                        .flatMap(isBlacklisted -> {
-                            if(isBlacklisted) {
-                                log.error(ErrorCode.EXPIRED_TOKEN.getErrorMessage());
-                                return Mono.error(new CustomException(ErrorCode.EXPIRED_TOKEN));
-                            }
-                            return customUserDetailsService.findByUsername(email)
-                                    .switchIfEmpty(Mono.defer(() -> {
-                                        log.error(ErrorCode.ACCOUNT_NOT_FOUND.getErrorMessage());
-                                        return Mono.error(new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
-                                    }))
-                                    .flatMap(userDetails -> {
-                                        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                                                userDetails,null,userDetails.getAuthorities());
-                                        return chain.filter(exchange)
-                                                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
-                                    });
-                        }));
+                    return accessTokenMono
+                            .flatMap(token -> tokenManageService.checkTokenBlacklisted(token)
+                                    .flatMap(isBlacklisted -> {
+                                        if(isBlacklisted) {
+                                            log.error(ErrorCode.EXPIRED_TOKEN.getErrorMessage());
+                                            return Mono.error(new CustomException(ErrorCode.EXPIRED_TOKEN));
+                                        }
+                                        return customUserDetailsService.findByUsername(email)
+                                                .switchIfEmpty(Mono.defer(() -> {
+                                                    log.error(ErrorCode.ACCOUNT_NOT_FOUND.getErrorMessage());
+                                                    return Mono.error(new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+                                                }))
+                                                .flatMap(userDetails -> {
+                                                    Authentication authentication = new UsernamePasswordAuthenticationToken(
+                                                            userDetails,null,userDetails.getAuthorities());
+                                                    return chain.filter(exchange)
+                                                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
+                                                });
+                                    }));
+                });
     }
 
     @NotNull
