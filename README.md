@@ -7,6 +7,9 @@
 - Java
 - Mysql, MongoDB, Redis
 
+## 시스템 아키텍처
+<img src="https://github.com/Kan9hee/BeSafe/blob/master/BeSafe_architecture.png" width="800"/>
+
 ## 주요 기능
 
 ### 회원관리 (로컬/소셜 로그인)
